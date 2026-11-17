@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Camera, 
   Upload, 
@@ -9,7 +9,9 @@ import {
   ScanLine, 
   User, 
   CreditCard,
-  Sparkles
+  Sparkles,
+  SwitchCamera,
+  HelpCircle
 } from 'lucide-react';
 import { runClientOCR } from '../lib/ocr';
 
@@ -22,6 +24,7 @@ export const OcrScannerModal = ({
 }) => {
   const [stream, setStream] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [facingMode, setFacingMode] = useState('environment'); // 'environment' (belakang) | 'user' (depan)
   const [capturedImage, setCapturedImage] = useState(null);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,18 +38,83 @@ export const OcrScannerModal = ({
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
+  const nativeCameraInputRef = useRef(null);
 
-  // Stop camera when closing
-  const stopCamera = () => {
+  // Stop camera tracks safely
+  const stopCamera = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      try {
+        stream.getTracks().forEach(track => track.stop());
+      } catch (e) {
+        console.warn('Error stopping track:', e);
+      }
       setStream(null);
     }
     setIsCameraActive(false);
-  };
+  }, [stream]);
 
+  // Start Camera with resilient fallback constraints
+  const startCamera = useCallback(async (targetFacing = 'environment') => {
+    try {
+      setErrorMessage('');
+      
+      // Stop existing stream first
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Browser tidak mendukung WebRTC kamera. Silakan gunakan tombol "Buka Kamera HP (Native)".');
+      }
+
+      let newStream = null;
+      try {
+        // Coba dengan facingMode ideal (belakang untuk scan kartu)
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: { ideal: targetFacing },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      } catch (firstErr) {
+        console.warn('Constraint ideal gagal, mencoba akses video generic:', firstErr);
+        // Fallback generic video stream
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      }
+
+      setStream(newStream);
+      setIsCameraActive(true);
+      setFacingMode(targetFacing);
+    } catch (err) {
+      console.error('Kamera gagal diakses:', err);
+      let msg = 'Kamera langsung belum aktif. ';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        msg = 'Izin kamera ditolak browser. Klik ikon gembok 🔒 di samping link website pada browser Anda, lalu ubah Kamera menjadi "Izinkan / Allow". Atau gunakan tombol Kamera HP di bawah.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        msg = 'Kamera tidak terdeteksi pada perangkat Anda.';
+      } else {
+        msg += (err.message || '');
+      }
+      setErrorMessage(msg);
+      setIsCameraActive(false);
+    }
+  }, [stream]);
+
+  // Auto-start camera when modal opens
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen && !capturedImage) {
+      // Delay sedikit agar DOM modal siap
+      const timer = setTimeout(() => {
+        startCamera('environment');
+      }, 250);
+      return () => clearTimeout(timer);
+    } else if (!isOpen) {
       stopCamera();
       setCapturedImage(null);
       setOcrResult(null);
@@ -55,46 +123,40 @@ export const OcrScannerModal = ({
     }
   }, [isOpen]);
 
-  // Start Camera
-  const startCamera = async () => {
-    try {
-      setErrorMessage('');
-      stopCamera();
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: { ideal: 'environment' }, // Camera belakang HP
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        },
-        audio: false
-      });
-      setStream(mediaStream);
-      setIsCameraActive(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err) {
-      console.warn('Gagal akses kamera langsung, gunakan upload foto:', err);
-      setErrorMessage('Kamera langsung tidak dapat diakses (izin ditolak atau di desktop). Silakan pilih opsi "Upload / Foto via Galeri HP".');
-      setIsCameraActive(false);
+  // Hubungkan stream ke elemen video saat stream atau isCameraActive berubah
+  useEffect(() => {
+    if (videoRef.current && stream && isCameraActive) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(e => console.warn('Video auto-play suppressed:', e));
     }
+  }, [stream, isCameraActive]);
+
+  // Flip Camera (Belakang <-> Depan)
+  const handleToggleFacingMode = () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    startCamera(nextMode);
   };
 
   // Capture Frame from Video
   const captureFrame = () => {
     if (!videoRef.current) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth || 1280;
-    canvas.height = videoRef.current.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    stopCamera();
-    setCapturedImage(dataUrl);
-    processOCR(dataUrl);
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth || 1280;
+      canvas.height = videoRef.current.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      stopCamera();
+      setCapturedImage(dataUrl);
+      processOCR(dataUrl);
+    } catch (e) {
+      console.error('Gagal mengambil frame foto:', e);
+      setErrorMessage('Gagal mengambil foto dari kamera. Silakan coba lagi.');
+    }
   };
 
-  // Handle File Input (From phone camera / storage)
+  // Handle File Input (From native camera or gallery)
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -106,6 +168,8 @@ export const OcrScannerModal = ({
       processOCR(dataUrl);
     };
     reader.readAsDataURL(file);
+    // Reset file input agar bisa dipilih kembali jika perlu
+    e.target.value = '';
   };
 
   // Run Tesseract OCR Process
@@ -126,10 +190,10 @@ export const OcrScannerModal = ({
         setNikInput(result.nik || '');
         setNameInput(result.name || '');
         if (!result.nik) {
-          setErrorMessage('NIK tidak terbaca jelas secara otomatis. Anda dapat mengetikkan atau memperbaiki NIK secara manual di kotak bawah.');
+          setErrorMessage('NIK tidak terbaca otomatis dengan tajam. Anda dapat langsung mengetikkan NIK pada kolom di bawah.');
         }
       } else {
-        setErrorMessage(result.error || 'Gagal membaca kartu identitas. Pastikan foto terang dan tidak silau.');
+        setErrorMessage(result.error || 'Gagal membaca kartu identitas. Pastikan foto cukup terang.');
       }
     } catch (err) {
       setErrorMessage('Terjadi kesalahan saat memproses OCR: ' + err.message);
@@ -155,82 +219,45 @@ export const OcrScannerModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
         
         {/* Header Modal */}
-        <div className="bg-[#0F5132] px-5 py-4 text-white flex justify-between items-center">
+        <div className="bg-[#0F5132] px-4 sm:px-5 py-3.5 text-white flex justify-between items-center shadow-xs">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-700 flex items-center justify-center text-amber-400">
+            <div className="w-8 h-8 rounded-xl bg-emerald-700/80 flex items-center justify-center text-amber-400 shadow-inner">
               <ScanLine className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base leading-tight">{title}</h3>
-              <p className="text-[11px] text-emerald-200">
-                Pemrosesan aman Client-Side Tesseract.js (Tanpa simpan foto)
+              <h3 className="font-extrabold text-sm sm:text-base leading-tight">{title}</h3>
+              <p className="text-[10px] sm:text-[11px] text-emerald-200">
+                Deteksi Otomatis NIK KTP / Kartu Pegawai
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="text-emerald-200 hover:text-white p-1 rounded-lg hover:bg-emerald-800 transition"
+            className="text-emerald-200 hover:text-white p-1.5 rounded-xl hover:bg-emerald-800 transition cursor-pointer"
+            title="Tutup Scanner"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 overflow-y-auto space-y-4 flex-1">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1">
           
           {/* Instruksi Pengambilan Foto */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-start space-x-2.5">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-emerald-950 flex items-start space-x-2.5">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold">Tips Hasil Scan Jelas:</span> Posisikan Kartu Karyawan atau KTP pas di dalam frame, hindari pantulan cahaya/lampu, dan pastikan deretan angka NIK terlihat fokus.
+            <div className="text-[11px] sm:text-xs">
+              <span className="font-bold text-[#0F5132]">Tips Cepat:</span> Posisikan kartu KTP/ID pas di dalam bingkai kotak kuning, pastikan pencahayaan cukup dan angka NIK terlihat tajam.
             </div>
           </div>
 
-          {/* Action Buttons: Live Camera or Upload */}
-          {!isCameraActive && !capturedImage && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <button
-                type="button"
-                onClick={startCamera}
-                className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-[#0F5132]/40 bg-emerald-50/50 hover:bg-emerald-50 text-[#0F5132] font-semibold text-xs transition cursor-pointer group"
-              >
-                <div className="w-12 h-12 rounded-full bg-[#0F5132] text-white flex items-center justify-center mb-2 group-hover:scale-105 transition shadow-sm">
-                  <Camera className="w-6 h-6 text-amber-400" />
-                </div>
-                <span>Buka Kamera Langsung</span>
-                <span className="text-[10px] text-slate-500 mt-1">Kamera HP / Webcam</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer group"
-              >
-                <div className="w-12 h-12 rounded-full bg-slate-700 text-white flex items-center justify-center mb-2 group-hover:scale-105 transition shadow-sm">
-                  <Upload className="w-6 h-6 text-emerald-300" />
-                </div>
-                <span>Pilih Foto dari Galeri</span>
-                <span className="text-[10px] text-slate-500 mt-1">Unggah KTP / ID Card</span>
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </div>
-          )}
-
-          {/* Live Video Camera Stream */}
+          {/* Area Kamera Langsung (Live Viewfinder) */}
           {isCameraActive && (
-            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border-2 border-[#0F5132]">
+            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border-2 border-[#0F5132] shadow-md">
               <video 
                 ref={videoRef} 
                 autoPlay 
@@ -240,44 +267,125 @@ export const OcrScannerModal = ({
               />
               
               {/* ID Card Target Frame Overlay */}
-              <div className="absolute inset-x-8 inset-y-6 border-2 border-dashed border-amber-400 rounded-xl pointer-events-none flex flex-col justify-between p-2 shadow-inner">
-                <span className="text-[10px] text-amber-300 bg-black/60 px-2 py-0.5 rounded self-start font-mono">
-                  Area Kartu Identitas
+              <div className="absolute inset-x-6 inset-y-4 sm:inset-x-8 sm:inset-y-6 border-2 border-dashed border-amber-400 rounded-2xl pointer-events-none flex flex-col justify-between p-2 shadow-inner">
+                <span className="text-[9px] sm:text-[10px] text-amber-300 bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded-md self-start font-mono font-bold">
+                  BINGKAI KARTU IDENTITAS
                 </span>
-                <span className="text-[10px] text-white bg-black/60 px-2 py-0.5 rounded self-center">
-                  Sejajarkan NIK di dalam kotak ini
+                <span className="text-[9px] sm:text-[10px] text-white bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded-md self-center font-semibold">
+                  Arahkan NIK ke tengah kotak ini
                 </span>
               </div>
 
-              {/* Bottom Snap Button */}
-              <div className="absolute bottom-3 inset-x-0 flex justify-center space-x-3">
+              {/* Top Controls: Flip Camera Button */}
+              <div className="absolute top-2 right-2 flex space-x-1.5">
+                <button
+                  type="button"
+                  onClick={handleToggleFacingMode}
+                  className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-xl backdrop-blur-xs transition flex items-center space-x-1 text-[11px] font-bold cursor-pointer"
+                  title="Ganti Kamera Depan / Belakang"
+                >
+                  <SwitchCamera className="w-4 h-4 text-amber-300" />
+                  <span className="hidden sm:inline">Putar Kamera</span>
+                </button>
+              </div>
+
+              {/* Bottom Snap Controls */}
+              <div className="absolute bottom-2.5 inset-x-0 flex justify-center items-center space-x-2.5 px-3">
                 <button
                   type="button"
                   onClick={captureFrame}
-                  className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-full flex items-center space-x-1.5 shadow-lg active:scale-95 transition"
+                  className="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 font-black text-xs sm:text-sm px-6 py-2.5 rounded-full flex items-center space-x-2 shadow-xl transition cursor-pointer"
                 >
-                  <Camera className="w-4 h-4" />
-                  <span>Ambil Foto Sekarang</span>
+                  <Camera className="w-4 h-4 text-slate-900" />
+                  <span>Ambil Foto</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={stopCamera}
-                  className="bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-2 rounded-full transition"
+                  className="bg-black/70 hover:bg-black/90 text-white text-xs px-3.5 py-2.5 rounded-full backdrop-blur-xs transition cursor-pointer font-bold"
                 >
-                  Batal
+                  Tutup Kamera
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Fallback & Option Buttons jika Kamera belum aktif atau ditutup */}
+          {!isCameraActive && !capturedImage && (
+            <div className="space-y-2.5 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                
+                {/* 1. Buka Kamera Langsung WebRTC */}
+                <button
+                  type="button"
+                  onClick={() => startCamera('environment')}
+                  className="flex items-center space-x-3 p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-[#0F5132] font-bold text-xs transition cursor-pointer shadow-xs active:scale-98"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#0F5132] text-amber-400 flex items-center justify-center shrink-0 shadow-sm">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-xs font-black">Buka Kamera Langsung</span>
+                    <span className="text-[10px] text-emerald-800 font-normal">Kamera HP / Webcam</span>
+                  </div>
+                </button>
+
+                {/* 2. Shutter Kamera Asli HP (Paling Stabil di HP Android & iPhone) */}
+                <button
+                  type="button"
+                  onClick={() => nativeCameraInputRef.current?.click()}
+                  className="flex items-center space-x-3 p-3.5 rounded-2xl border-2 border-amber-500 bg-amber-50 hover:bg-amber-100 text-amber-950 font-bold text-xs transition cursor-pointer shadow-xs active:scale-98"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 flex items-center justify-center shrink-0 shadow-sm">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-xs font-black">Foto dengan Kamera HP</span>
+                    <span className="text-[10px] text-amber-800 font-normal">Buka aplikasi kamera bawaan</span>
+                  </div>
+                </button>
+
+              </div>
+
+              {/* 3. Tombol Galeri */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center space-x-2 p-3 rounded-2xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                <Upload className="w-4 h-4 text-emerald-700" />
+                <span>Pilih Foto KTP yang Sudah Ada di Galeri HP</span>
+              </button>
+
+              {/* Hidden Inputs untuk File & Native Camera */}
+              <input
+                ref={nativeCameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
             </div>
           )}
 
           {/* Captured Preview & Processing Status */}
           {capturedImage && (
             <div className="space-y-3">
-              <div className="relative rounded-xl overflow-hidden bg-slate-100 max-h-48 border border-slate-200 flex items-center justify-center">
+              <div className="relative rounded-2xl overflow-hidden bg-slate-100 max-h-52 border border-slate-200 flex items-center justify-center">
                 <img 
                   src={capturedImage} 
                   alt="Kartu Identitas" 
-                  className="w-full h-48 object-contain" 
+                  className="w-full h-52 object-contain" 
                 />
                 {!ocrLoading && (
                   <button
@@ -285,10 +393,11 @@ export const OcrScannerModal = ({
                       setCapturedImage(null);
                       setOcrResult(null);
                       setErrorMessage('');
+                      startCamera('environment');
                     }}
-                    className="absolute top-2 right-2 bg-slate-900/80 hover:bg-slate-900 text-white text-[11px] px-2.5 py-1 rounded-lg flex items-center space-x-1 backdrop-blur-xs transition"
+                    className="absolute top-2 right-2 bg-slate-900/80 hover:bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl flex items-center space-x-1.5 backdrop-blur-xs transition cursor-pointer"
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="w-3.5 h-3.5" />
                     <span>Foto Ulang</span>
                   </button>
                 )}
@@ -296,17 +405,17 @@ export const OcrScannerModal = ({
 
               {/* OCR Progress Bar */}
               {ocrLoading && (
-                <div className="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
-                    <span className="flex items-center space-x-1.5">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#0F5132]" />
-                      <span>{progressStatus || 'Sedang memproses OCR...'}</span>
+                <div className="space-y-2 bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                  <div className="flex justify-between items-center text-xs font-bold text-emerald-950">
+                    <span className="flex items-center space-x-2">
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#0F5132]" />
+                      <span>{progressStatus || 'Menganalisis NIK Kartu...'}</span>
                     </span>
-                    <span className="text-[#0F5132] font-mono">{progress}%</span>
+                    <span className="text-[#0F5132] font-mono text-sm">{progress}%</span>
                   </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-emerald-200/60 rounded-full h-3 overflow-hidden">
                     <div 
-                      className="bg-[#0F5132] h-2.5 rounded-full transition-all duration-300 ease-out" 
+                      className="bg-[#0F5132] h-3 rounded-full transition-all duration-300 ease-out" 
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -317,9 +426,9 @@ export const OcrScannerModal = ({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="flex-1">
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-3.5 text-xs text-amber-950 flex items-start space-x-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <div className="flex-1 font-medium leading-relaxed">
                 <span>{errorMessage}</span>
               </div>
             </div>
@@ -328,9 +437,9 @@ export const OcrScannerModal = ({
           {/* Hasil Deteksi & Kolom Validasi / Edit Manual */}
           {ocrResult && (
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
-              <div className="flex items-center space-x-1.5 text-xs font-bold text-[#0F5132]">
+              <div className="flex items-center space-x-1.5 text-xs font-extrabold text-[#0F5132]">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Hasil Ekstraksi OCR (Bisa Diedit Jika Ada Huruf Kurang Pas):</span>
+                <span>Hasil Ekstraksi OCR (Bisa Diedit Jika Ada Angka Kurang Pas):</span>
               </div>
 
               {/* Input NIK */}
@@ -374,11 +483,11 @@ export const OcrScannerModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-slate-50 px-5 py-3.5 border-t border-slate-200 flex justify-between items-center">
+        <div className="bg-slate-50 px-4 sm:px-5 py-3 border-t border-slate-200 flex justify-between items-center">
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-semibold text-slate-600 hover:text-slate-800 px-4 py-2 rounded-xl transition"
+            className="text-xs font-bold text-slate-600 hover:text-slate-900 px-3.5 py-2 rounded-xl transition cursor-pointer"
           >
             Tutup
           </button>
@@ -387,7 +496,7 @@ export const OcrScannerModal = ({
             <button
               type="button"
               onClick={handleConfirm}
-              className="bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center space-x-1.5 transition cursor-pointer"
+              className="bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center space-x-1.5 transition cursor-pointer active:scale-98"
             >
               <CheckCircle2 className="w-4 h-4 text-amber-400" />
               <span>{mode === 'login' ? 'Gunakan NIK & Masuk' : 'Gunakan Data Ini'}</span>
