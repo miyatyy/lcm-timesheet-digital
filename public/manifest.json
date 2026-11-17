@@ -1,0 +1,65 @@
+{
+  "name": "LCM TimeSheet Digital - PT. LAZ COAL MANDIRI",
+  "short_name": "LCM TimeSheet",
+  "description": "Sistem Pencatatan Jam Kerja (HM) Alat Berat & Dump Truck PT. LAZ COAL MANDIRI Site Arutmin Indonesia, Kintap",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/pwa-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Login Akun Karyawan",
+      "short_name": "Login",
+      "description": "Masuk cepat ke sistem TimeSheet",
+      "url": "/?source=pwa&view=login",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Scan NIK Cepat (OCR)",
+      "short_name": "Scan NIK",
+      "description": "Pindai kartu Mine Permit / KTP untuk login otomatis",
+      "url": "/?source=pwa&view=ocr",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

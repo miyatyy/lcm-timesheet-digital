@@ -28,7 +28,9 @@ export const AuthView = ({
   onLoginSuccess, 
   initialTab = 'login', 
   initialTriggerOcr = false, 
-  onBackToDashboard 
+  onBackToDashboard,
+  isInstalledPWA = false,
+  isDesktop = true
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab === 'register' ? 'register' : 'login');
   const [loading, setLoading] = useState(false);
@@ -255,7 +257,8 @@ export const AuthView = ({
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-3 sm:p-6 bg-[#F8FAFC]">
       <div className="w-full max-w-xl space-y-3">
-        {onBackToDashboard && (
+        {/* Tombol Kembali ke Dashboard Beranda (Khusus Browser Desktop Saja & Bukan PWA Terinstal) */}
+        {onBackToDashboard && !isInstalledPWA && isDesktop && (
           <button
             type="button"
             onClick={onBackToDashboard}

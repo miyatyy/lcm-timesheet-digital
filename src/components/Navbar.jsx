@@ -18,7 +18,9 @@ export const Navbar = ({
   setActiveTab,
   authViewMode = 'dashboard',
   onNavigateToAuth,
-  onBackToDashboard
+  onBackToDashboard,
+  isInstalled = false,
+  isDesktop = true
 }) => {
   const isOperator = currentUser?.role === 'operator' || currentUser?.jabatan?.includes('Alat Berat');
   const isDriver = currentUser?.role === 'driver' || currentUser?.jabatan?.includes('Dump Truck');
@@ -52,9 +54,9 @@ export const Navbar = ({
           
           {/* Logo & System Title */}
           <div 
-            onClick={!currentUser && onBackToDashboard ? onBackToDashboard : undefined}
-            className={`flex items-center space-x-2 sm:space-x-3 select-none ${!currentUser ? 'cursor-pointer hover:opacity-90 transition' : ''}`}
-            title={!currentUser ? 'Klik untuk kembali ke Beranda & Profil PT. LCM' : undefined}
+            onClick={!currentUser && !isInstalled && isDesktop && onBackToDashboard ? onBackToDashboard : undefined}
+            className={`flex items-center space-x-2 sm:space-x-3 select-none ${!currentUser && !isInstalled && isDesktop ? 'cursor-pointer hover:opacity-90 transition' : ''}`}
+            title={!currentUser && !isInstalled && isDesktop ? 'Klik untuk kembali ke Beranda & Profil PT. LCM' : undefined}
           >
             <img 
               src="/lcm-logo.png" 
@@ -145,19 +147,22 @@ export const Navbar = ({
             </div>
           ) : (
             <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <button
-                type="button"
-                onClick={onBackToDashboard}
-                className={`flex items-center space-x-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition cursor-pointer active:scale-98 ${
-                  authViewMode === 'dashboard'
-                    ? 'bg-blue-100 text-[#1e3a8a] border border-blue-300'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1e3a8a]" />
-                <span className="hidden sm:inline">Beranda Profil</span>
-                <span className="sm:hidden">Profil</span>
-              </button>
+              {/* Tombol Beranda Profil: Khusus Browser Desktop & Bukan PWA Terinstal */}
+              {!isInstalled && isDesktop && (
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className={`flex items-center space-x-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition cursor-pointer active:scale-98 ${
+                    authViewMode === 'dashboard'
+                      ? 'bg-blue-100 text-[#1e3a8a] border border-blue-300'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1e3a8a]" />
+                  <span className="hidden sm:inline">Beranda Profil</span>
+                  <span className="sm:hidden">Profil</span>
+                </button>
+              )}
 
               <button
                 type="button"

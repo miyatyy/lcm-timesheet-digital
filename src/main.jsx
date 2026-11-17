@@ -22,6 +22,13 @@ if (typeof window !== 'undefined') {
     e.stopImmediatePropagation?.();
     e.preventDefault();
   }, true);
+
+  // Registrasi Progressive Web App (PWA) Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
 }
 
 createRoot(document.getElementById('root')).render(
