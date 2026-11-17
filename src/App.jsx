@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { PublicDashboard } from './components/PublicDashboard';
 import { AuthView } from './components/AuthView';
@@ -52,6 +53,7 @@ export function App() {
 
   const [authTab, setAuthTab] = useState('login'); // 'login' | 'register'
   const [autoTriggerOcr, setAutoTriggerOcr] = useState(false);
+  const [cloudSyncedToast, setCloudSyncedToast] = useState(false);
 
   // Deteksi perubahan ukuran layar & event instalasi PWA
   useEffect(() => {
@@ -76,7 +78,7 @@ export function App() {
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Cek parameter query URL (misal: /?source=pwa&view=login)
+    // Cek parameter query URL (misal: /?source=pwa&view=login atau sinkronisasi ?sb_url=...)
     const params = new URLSearchParams(window.location.search);
     if (params.get('source') === 'pwa' || params.get('view') === 'login') {
       setIsInstalled(true);
@@ -85,6 +87,15 @@ export function App() {
       if (params.get('view') === 'ocr') {
         setAutoTriggerOcr(true);
       }
+    }
+
+    if (params.get('sb_url') && params.get('sb_key')) {
+      setCloudSyncedToast(true);
+      setTimeout(() => setCloudSyncedToast(false), 6000);
+      try {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (e) {}
     }
 
     return () => {
@@ -169,6 +180,19 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-blue-100 selection:text-[#1e3a8a]">
       
+      {/* Toast Notifikasi Sinkronisasi Cloud Supabase */}
+      {cloudSyncedToast && (
+        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-50 bg-[#1e3a8a] text-white p-4 rounded-2xl shadow-2xl border border-blue-400 animate-in fade-in slide-in-from-top-4 flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div className="text-xs">
+            <strong className="block font-black text-sm text-emerald-300">Database Cloud Terhubung!</strong>
+            <span className="text-blue-100">Perangkat HP ini telah tersambung secara realtime ke server Site LCM. Laporan & foto langsung masuk ke laptop Admin.</span>
+          </div>
+        </div>
+      )}
+
       {/* Monthly Day 1 Alert Banner */}
       <MonthlyNotificationBanner />
 

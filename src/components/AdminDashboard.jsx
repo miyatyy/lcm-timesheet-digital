@@ -24,7 +24,14 @@ import {
   Eye,
   Image as ImageIcon,
   ExternalLink,
-  X
+  X,
+  Settings,
+  Wifi,
+  WifiOff,
+  Copy,
+  QrCode,
+  RefreshCw,
+  Radio
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -32,7 +39,12 @@ import {
   dtTimesheetRepo, 
   employeeRepo, 
   monthlyResetService, 
-  isSupabaseConfigured
+  isSupabaseConfigured,
+  getSupabaseConfig,
+  saveSupabaseConfig,
+  clearSupabaseConfig,
+  testSupabaseConnection,
+  supabase
 } from '../lib/supabase';
 import { exportDatabaseHMToExcel } from '../lib/exportExcel';
 import { exportDatabaseHMToWord } from '../lib/exportWord';
@@ -67,9 +79,21 @@ export const AdminDashboard = ({ currentUser }) => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetFeedback, setResetFeedback] = useState(null);
 
-  // Load Data
-  const loadData = async () => {
-    setLoading(true);
+  // Cloud Database (Supabase) Connection & Realtime Sync State
+  const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConfigured());
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [cfgUrl, setCfgUrl] = useState(getSupabaseConfig().url || '');
+  const [cfgKey, setCfgKey] = useState(getSupabaseConfig().anonKey || '');
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(new Date().toLocaleTimeString('id-ID'));
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Load Data (mendukung silent refresh agar tidak flicker saat auto-poll realtime)
+  const loadData = async (showLoadingSpinner = true) => {
+    if (showLoadingSpinner) setLoading(true);
+    setIsRefreshing(true);
     try {
       const [heData, dtData, empData] = await Promise.all([
         heTimesheetRepo.getAll(),
@@ -79,16 +103,110 @@ export const AdminDashboard = ({ currentUser }) => {
       setHeList(heData || []);
       setDtList(dtData || []);
       setEmployees(empData || []);
+      setIsCloudConnected(isSupabaseConfigured());
+      setLastRefreshedAt(new Date().toLocaleTimeString('id-ID'));
     } catch (err) {
       console.error('Error loading dashboard data:', err);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
+  // Realtime Live Subscription & Auto-Polling (Setiap 4 Detik)
   useEffect(() => {
-    loadData();
+    loadData(true);
+
+    // 1. Supabase WebSocket Realtime Channel
+    let channel = null;
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        channel = supabase
+          .channel('realtime_admin_dashboard_sync')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'he_timesheets' }, () => {
+            loadData(false);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'dt_timesheets' }, () => {
+            loadData(false);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => {
+            loadData(false);
+          })
+          .subscribe();
+      } catch (err) {
+        console.warn('Realtime channel subscription error:', err);
+      }
+    }
+
+    // 2. Auto-polling interval: data dari HP otomatis masuk ke laptop admin setiap 4 detik tanpa reload!
+    const pollInterval = setInterval(() => {
+      loadData(false);
+    }, 4000);
+
+    return () => {
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+      clearInterval(pollInterval);
+    };
   }, []);
+
+  // Handler Tes Koneksi Supabase
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    setTestResult(null);
+    try {
+      const res = await testSupabaseConnection(cfgUrl, cfgKey);
+      setTestResult(res);
+    } catch (err) {
+      setTestResult({ success: false, message: err.message || 'Gagal tes koneksi' });
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  // Handler Simpan Konfigurasi Supabase
+  const handleSaveConnection = () => {
+    if (!cfgUrl.trim() || !cfgKey.trim()) {
+      alert('Harap isi URL Supabase dan Anon Key');
+      return;
+    }
+    const success = saveSupabaseConfig(cfgUrl, cfgKey);
+    setIsCloudConnected(isSupabaseConfigured());
+    if (success) {
+      setTestResult({ success: true, message: 'Konfigurasi berhasil disimpan! Memuat ulang data...' });
+      loadData(true);
+      setTimeout(() => {
+        setConfigModalOpen(false);
+      }, 1500);
+    } else {
+      setTestResult({ success: false, message: 'Gagal inisialisasi client Supabase dengan URL/Key tersebut.' });
+    }
+  };
+
+  // URL Sinkronisasi HP
+  const hpSyncUrl = typeof window !== 'undefined' && cfgUrl && cfgKey
+    ? `${window.location.origin}/?sb_url=${encodeURIComponent(cfgUrl)}&sb_key=${encodeURIComponent(cfgKey)}`
+    : '';
+
+  const handleCopyHpSyncUrl = () => {
+    if (!hpSyncUrl) return;
+    navigator.clipboard.writeText(hpSyncUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 3000);
+  };
+
+  const handleClearConnection = () => {
+    if (window.confirm('Apakah Anda yakin ingin memutuskan koneksi Supabase dan kembali ke mode LocalStorage offline?')) {
+      clearSupabaseConfig();
+      setCfgUrl('');
+      setCfgKey('');
+      setIsCloudConnected(false);
+      setTestResult(null);
+      loadData(true);
+      setConfigModalOpen(false);
+    }
+  };
 
   // Format Data HM Unit sesuai spesifikasi:
   // Date | Shift | Model Unit | No Unit | HM Awal | HM Akhir | Total HM | Operator 1 | HM Opt 1 | Operator 2 | HM Opt 2 | Operator 3 | HM Opt 3
@@ -244,6 +362,69 @@ export const AdminDashboard = ({ currentUser }) => {
               Rekapitulasi Jam Kerja (HM) Alat Berat, Hauling Dump Truck, Ekspor Excel/Word/PDF, dan Manajemen Akun Karyawan
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* REALTIME SYNC & CLOUD CONNECTION STATUS STRIP                             */}
+      {/* ========================================================================= */}
+      <div className={`p-4 sm:p-5 rounded-3xl border shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5 transition ${
+        isCloudConnected 
+          ? 'bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-emerald-300 text-emerald-950'
+          : 'bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border-amber-300 text-amber-950'
+      }`}>
+        <div className="flex items-start sm:items-center space-x-3.5">
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
+            isCloudConnected ? 'bg-emerald-600 text-white shadow-md' : 'bg-amber-500 text-slate-950 shadow-md'
+          }`}>
+            {isCloudConnected ? <Radio className="w-5 h-5 animate-pulse" /> : <WifiOff className="w-5 h-5" />}
+          </div>
+          <div className="space-y-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs sm:text-sm font-black">
+                {isCloudConnected ? 'Database Cloud Supabase Terhubung (Realtime Online)' : 'Mode Offline / LocalStorage Lokal'}
+              </span>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase border ${
+                isCloudConnected 
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                  : 'bg-amber-200 text-amber-900 border-amber-400'
+              }`}>
+                {isCloudConnected ? '🟢 Live Sync Aktif' : '⚠️ Data Terisolasi di HP'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed max-w-2xl">
+              {isCloudConnected
+                ? `Data time sheet & foto kertas HM dari HP karyawan otomatis masuk ke layar admin ini dalam hitungan detik tanpa perlu refresh (Auto-Poll 4s • Update terakhir: ${lastRefreshedAt}).`
+                : 'PENTING: Agar data dan foto lembar kerja dari HP karyawan bisa terkirim ke laptop admin, hubungkan URL & Anon Key Supabase di bawah.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex items-center space-x-2 w-full md:w-auto justify-end shrink-0">
+          <button
+            type="button"
+            onClick={() => loadData(true)}
+            disabled={isRefreshing}
+            className="bg-white hover:bg-slate-50 active:scale-98 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl border border-slate-300 shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+            title="Segarkan data terbaru secara manual"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Segarkan</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setConfigModalOpen(true)}
+            className={`text-xs font-black px-3.5 py-2 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer active:scale-98 ${
+              isCloudConnected 
+                ? 'bg-emerald-700 hover:bg-emerald-800 text-white' 
+                : 'bg-amber-500 hover:bg-amber-600 text-slate-950 animate-pulse'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>{isCloudConnected ? 'Kelola Database' : 'Hubungkan Supabase'}</span>
+          </button>
         </div>
       </div>
 
@@ -1298,6 +1479,218 @@ export const AdminDashboard = ({ currentUser }) => {
                   Tutup
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL PENGATURAN SUPABASE & SINKRONISASI REALTIME HP                     */}
+      {/* ========================================================================= */}
+      {configModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in"
+          onClick={() => setConfigModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-2xl w-full my-auto overflow-hidden shadow-2xl border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-[#1e3a8a] text-white flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm sm:text-base">
+                    Pengaturan Database Cloud & Sinkronisasi HP
+                  </h4>
+                  <p className="text-[11px] text-blue-200">
+                    Koneksi realtime agar laporan & foto kertas HM dari HP karyawan langsung tampil di laptop admin
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfigModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+              
+              {/* Status Banner */}
+              <div className={`p-4 rounded-2xl border text-xs flex items-start space-x-3 ${
+                isCloudConnected 
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                  : 'bg-amber-50 border-amber-300 text-amber-950'
+              }`}>
+                {isCloudConnected ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                )}
+                <div className="space-y-1">
+                  <span className="font-extrabold block text-xs sm:text-sm">
+                    {isCloudConnected ? 'Database Cloud Supabase Terhubung' : 'Aplikasi Berjalan dalam Mode Offline (LocalStorage)'}
+                  </span>
+                  <p className="text-[11px] leading-relaxed text-slate-600">
+                    {isCloudConnected
+                      ? 'Laporan baru dan foto kertas HM dari HP karyawan akan tersinkronisasi otomatis ke dashboard ini dalam hitungan detik (Auto-poll 4s).'
+                      : 'Data di HP operator/driver saat ini terisolasi di memori HP masing-masing dan tidak sampai ke laptop admin. Silakan masukkan URL & Anon Key Supabase untuk mengaktifkan sinkronisasi antar perangkat.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Form Input URL & Anon Key */}
+              <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
+                <h5 className="font-extrabold text-xs text-slate-900 flex items-center space-x-2">
+                  <Settings className="w-4 h-4 text-blue-600" />
+                  <span>Kredensial Database Supabase</span>
+                </h5>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Project URL Supabase (VITE_SUPABASE_URL)
+                  </label>
+                  <input
+                    type="text"
+                    value={cfgUrl}
+                    onChange={(e) => setCfgUrl(e.target.value)}
+                    placeholder="https://your-project-id.supabase.co"
+                    className="w-full text-xs font-mono px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Anon / Public API Key (VITE_SUPABASE_ANON_KEY)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={cfgKey}
+                    onChange={(e) => setCfgKey(e.target.value)}
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    className="w-full text-xs font-mono px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
+                  />
+                </div>
+
+                {/* Feedback Hasil Tes */}
+                {testResult && (
+                  <div className={`p-3 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
+                    testResult.success 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-red-50 border-red-200 text-red-800'
+                  }`}>
+                    {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                    <span>{testResult.message}</span>
+                  </div>
+                )}
+
+                {/* Tombol Aksi */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={testingConnection || !cfgUrl || !cfgKey}
+                    className="bg-white hover:bg-slate-100 active:scale-98 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 shadow-2xs flex items-center space-x-2 transition cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${testingConnection ? 'animate-spin' : ''}`} />
+                    <span>{testingConnection ? 'Menguji...' : 'Tes Koneksi'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveConnection}
+                    disabled={!cfgUrl || !cfgKey}
+                    className="bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                  >
+                    Simpan & Aktifkan Cloud
+                  </button>
+
+                  {isCloudConnected && (
+                    <button
+                      type="button"
+                      onClick={handleClearConnection}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-semibold px-3 py-2 rounded-xl transition cursor-pointer ml-auto"
+                    >
+                      Putuskan Koneksi (Offline)
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Tautan & QR Code Sinkronisasi HP */}
+              <div className="space-y-3 bg-gradient-to-br from-blue-50/60 to-indigo-50/60 p-4 sm:p-5 rounded-2xl border border-blue-200/80">
+                <div className="flex items-center space-x-2">
+                  <QrCode className="w-4 h-4 text-[#1e3a8a]" />
+                  <h5 className="font-extrabold text-xs text-[#1e3a8a]">
+                    Tautan & QR Code Sinkronisasi HP Karyawan (1 Kali Buka)
+                  </h5>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Karyawan tidak perlu mengisi URL atau Key manual di HP. Cukup bagikan tautan ini via WhatsApp grup atau minta karyawan scan QR Code ini dari kamera HP sekali saja saat pertama kali membuka website.
+                </p>
+
+                {hpSyncUrl ? (
+                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-3.5 rounded-2xl border border-blue-200 shadow-2xs">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(hpSyncUrl)}`}
+                      alt="QR Code Sinkronisasi HP"
+                      className="w-32 h-32 rounded-xl border border-slate-200 p-1 shrink-0 bg-white"
+                      loading="lazy"
+                    />
+                    <div className="space-y-2 w-full">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
+                        Tautan Sinkronisasi Otomatis
+                      </label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={hpSyncUrl}
+                        className="w-full text-[11px] font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 select-all outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCopyHpSyncUrl}
+                        className="bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs flex items-center space-x-2 transition cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-amber-300" />
+                        <span>{copiedLink ? 'Tautan Berhasil Disalin!' : 'Salin Tautan untuk WA Grup'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 font-medium">
+                    Masukkan URL Supabase dan Anon Key di atas terlebih dahulu untuk membuat QR Code & Tautan sinkronisasi HP.
+                  </p>
+                )}
+              </div>
+
+              {/* Panduan Skrip SQL */}
+              <div className="p-3.5 bg-slate-100 rounded-xl text-[11px] text-slate-600 flex items-start space-x-2.5">
+                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-slate-800">Tips Setup Supabase: </span>
+                  Pastikan tabel <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">employees</code>, <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">he_timesheets</code>, dan <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">dt_timesheets</code> sudah dibuat. Skrip lengkap tersedia di file <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-800">supabase_schema.sql</code> di proyek ini.
+                </div>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setConfigModalOpen(false)}
+                className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition cursor-pointer"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>

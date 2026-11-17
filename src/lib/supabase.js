@@ -1,15 +1,54 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Baca konfigurasi dari .env atau dari localStorage (yang diset lewat modal admin)
+// Helper UUID Generator standar RFC-4122 (kompatibel penuh dengan tipe UUID di Supabase PostgreSQL)
+export const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+export const isValidUUID = (str) => {
+  if (!str || typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+};
+
+// Baca konfigurasi dari URL query (sinkronisasi QR code), .env, atau localStorage
 const getStoredConfig = () => {
+  // 1. Cek parameter query URL (?sb_url=...&sb_key=...) untuk sinkronisasi instan via QR/link
+  if (typeof window !== 'undefined') {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qUrl = params.get('sb_url');
+      const qKey = params.get('sb_key');
+      if (qUrl && qKey) {
+        const conf = { url: decodeURIComponent(qUrl).trim(), anonKey: decodeURIComponent(qKey).trim() };
+        localStorage.setItem('lcm_supabase_config', JSON.stringify(conf));
+        return conf;
+      }
+    } catch (e) {}
+  }
+
+  // 2. Cek localStorage
   try {
     const saved = localStorage.getItem('lcm_supabase_config');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.url && parsed.anonKey) {
+        return parsed;
+      }
     }
   } catch (e) {
     console.error('Failed to parse stored supabase config', e);
   }
+
+  // 3. Fallback ke environment variable (.env / Vercel)
   return {
     url: import.meta.env.VITE_SUPABASE_URL || '',
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -24,7 +63,12 @@ export const initSupabaseClient = (url, anonKey) => {
   if (url && anonKey && url.startsWith('http')) {
     try {
       supabase = createClient(url, anonKey, {
-        auth: { persistSession: false }
+        auth: { persistSession: false },
+        realtime: {
+          params: {
+            eventsPerSecond: 10
+          }
+        }
       });
       return true;
     } catch (e) {
@@ -46,10 +90,39 @@ export const saveSupabaseConfig = (url, anonKey) => {
   return initSupabaseClient(currentConfig.url, currentConfig.anonKey);
 };
 
+export const clearSupabaseConfig = () => {
+  currentConfig = { url: '', anonKey: '' };
+  localStorage.removeItem('lcm_supabase_config');
+  supabase = null;
+};
+
 export const getSupabaseConfig = () => currentConfig;
 
 export const isSupabaseConfigured = () => {
   return !!(supabase && currentConfig.url && currentConfig.anonKey);
+};
+
+// Uji koneksi ke Supabase dan verifikasi kesiapan tabel
+export const testSupabaseConnection = async (url, anonKey) => {
+  if (!url || !anonKey) {
+    return { success: false, message: 'URL Project dan Anon Key tidak boleh kosong.' };
+  }
+  try {
+    const testClient = createClient(url.trim(), anonKey.trim(), { auth: { persistSession: false } });
+    const { error } = await testClient.from('employees').select('count', { count: 'exact', head: true });
+    if (error) {
+      if (error.code === '42P01') {
+        return { 
+          success: false, 
+          message: 'Koneksi ke server Supabase berhasil, namun tabel belum dibuat. Harap jalankan script supabase_schema.sql di SQL Editor Supabase.' 
+        };
+      }
+      return { success: false, message: 'Supabase Error: ' + error.message };
+    }
+    return { success: true, message: 'Koneksi ke Supabase Cloud berhasil & seluruh tabel terdeteksi!' };
+  } catch (err) {
+    return { success: false, message: err.message || 'Gagal menghubungi server Supabase.' };
+  }
 };
 
 // ==============================================================================
@@ -177,8 +250,9 @@ export const employeeRepo = {
       throw new Error(`NIK ${cleanNik} sudah terdaftar atas nama ${existing.name}. Tidak dapat mendaftar ganda.`);
     }
 
+    const newId = generateUUID();
     const newEmp = {
-      id: 'emp-' + Date.now(),
+      id: newId,
       nik: cleanNik,
       name: empData.name.trim(),
       role: empData.jabatan.includes('Dump Truck') ? 'driver' : (empData.jabatan.includes('Admin') ? 'admin' : 'operator'),
@@ -192,7 +266,10 @@ export const employeeRepo = {
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.from('employees').insert([newEmp]).select().single();
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase insert employee error:', error);
+          throw error;
+        }
         if (data) {
           // Sync to local
           const local = getLocalStorage('lcm_employees', SEED_EMPLOYEES);
@@ -247,23 +324,30 @@ export const heTimesheetRepo = {
   },
 
   async create(record) {
+    const newId = generateUUID();
+    const validEmployeeId = isValidUUID(record.employee_id) ? record.employee_id : null;
+
     const item = {
-      id: 'he-' + Date.now(),
+      id: newId,
       created_at: new Date().toISOString(),
-      ...record
+      ...record,
+      employee_id: validEmployeeId
     };
 
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.from('he_timesheets').insert([item]).select().single();
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase create HE error:', error);
+          throw error;
+        }
         if (data) {
           const local = getLocalStorage('lcm_he_timesheets', SEED_HE);
           setLocalStorage('lcm_he_timesheets', [data, ...local]);
           return data;
         }
       } catch (e) {
-        console.warn('Supabase create HE failed', e);
+        console.warn('Supabase create HE failed:', e);
       }
     }
 
@@ -290,23 +374,30 @@ export const dtTimesheetRepo = {
   },
 
   async create(record) {
+    const newId = generateUUID();
+    const validEmployeeId = isValidUUID(record.employee_id) ? record.employee_id : null;
+
     const item = {
-      id: 'dt-' + Date.now(),
+      id: newId,
       created_at: new Date().toISOString(),
-      ...record
+      ...record,
+      employee_id: validEmployeeId
     };
 
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.from('dt_timesheets').insert([item]).select().single();
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase create DT error:', error);
+          throw error;
+        }
         if (data) {
           const local = getLocalStorage('lcm_dt_timesheets', SEED_DT);
           setLocalStorage('lcm_dt_timesheets', [data, ...local]);
           return data;
         }
       } catch (e) {
-        console.warn('Supabase create DT failed', e);
+        console.warn('Supabase create DT failed:', e);
       }
     }
 
