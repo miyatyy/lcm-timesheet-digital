@@ -4,7 +4,6 @@ import { AuthView } from './components/AuthView';
 import { HeavyEquipmentForm } from './components/HeavyEquipmentForm';
 import { DumpTruckForm } from './components/DumpTruckForm';
 import { AdminDashboard } from './components/AdminDashboard';
-import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { MonthlyNotificationBanner } from './components/MonthlyNotificationBanner';
 
 export function App() {
@@ -18,7 +17,6 @@ export function App() {
   });
 
   const [activeTab, setActiveTab] = useState('alat-berat'); // 'alat-berat' | 'dump-truck' | 'admin'
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // =========================================================================
   // ENFORCE STRICT SINGLE ROLE ACCESS RESTRICTION
@@ -69,7 +67,6 @@ export function App() {
         onLogout={handleLogout}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenConfig={() => setIsConfigOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -77,7 +74,6 @@ export function App() {
         {!currentUser ? (
           <AuthView 
             onLoginSuccess={handleLoginSuccess} 
-            onOpenConfig={() => setIsConfigOpen(true)}
           />
         ) : (
           <div>
@@ -95,21 +91,11 @@ export function App() {
             {isAdmin && (
               <AdminDashboard 
                 currentUser={currentUser} 
-                onOpenConfig={() => setIsConfigOpen(true)}
               />
             )}
           </div>
         )}
       </main>
-
-      {/* Supabase Connection Setup Modal */}
-      <SupabaseConfigModal
-        isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
-        onConfigSaved={() => {
-          // Trigger re-render
-        }}
-      />
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">

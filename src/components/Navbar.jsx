@@ -4,21 +4,16 @@ import {
   Truck, 
   ShieldCheck, 
   LogOut, 
-  Database, 
   Lock,
   UserCheck
 } from 'lucide-react';
-import { isSupabaseConfigured } from '../lib/supabase';
 
 export const Navbar = ({ 
   currentUser, 
   onLogout, 
   activeTab, 
-  setActiveTab,
-  onOpenConfig
+  setActiveTab
 }) => {
-  const isSupabaseOnline = isSupabaseConfigured();
-
   const isOperator = currentUser?.role === 'operator' || currentUser?.jabatan?.includes('Alat Berat');
   const isDriver = currentUser?.role === 'driver' || currentUser?.jabatan?.includes('Dump Truck');
   const isAdmin = currentUser?.role === 'admin' || currentUser?.jabatan?.includes('Admin');
@@ -33,19 +28,14 @@ export const Navbar = ({
           <span className="text-emerald-100 hidden sm:inline">Site Arutmin Indonesia, Kintap, Kalsel</span>
         </div>
         
-        {/* Status Database */}
+        {/* Status Sistem Operasional (Aman & Tidak Membuka Konfigurasi Database) */}
         <div className="flex items-center space-x-2 text-[11px]">
-          <button 
-            onClick={onOpenConfig}
-            className="flex items-center space-x-1.5 bg-emerald-900/60 hover:bg-emerald-900 px-2.5 py-0.5 rounded-full transition cursor-pointer border border-emerald-700/50"
-            title="Klik untuk konfigurasi database Supabase"
-          >
-            <span className={`w-2 h-2 rounded-full ${isSupabaseOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+          <div className="flex items-center space-x-1.5 bg-emerald-900/60 px-2.5 py-0.5 rounded-full border border-emerald-700/50 select-none">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             <span className="text-emerald-100 font-medium">
-              {isSupabaseOnline ? 'Supabase Online' : 'Local Demo Mode'}
+              Sistem Aktif
             </span>
-            <Database className="w-3 h-3 text-emerald-300 ml-1" />
-          </button>
+          </div>
         </div>
       </div>
 

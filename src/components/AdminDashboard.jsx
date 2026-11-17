@@ -26,15 +26,13 @@ import {
   dtTimesheetRepo, 
   employeeRepo, 
   monthlyResetService, 
-  isSupabaseConfigured,
-  saveSupabaseConfig,
-  getSupabaseConfig
+  isSupabaseConfigured
 } from '../lib/supabase';
 import { exportDatabaseHMToExcel } from '../lib/exportExcel';
 import { exportDatabaseHMToWord } from '../lib/exportWord';
 import { printHEDailyPDF, printDTDailyPDF, exportMonthlyBackupPDF } from '../lib/exportPdf';
 
-export const AdminDashboard = ({ currentUser, onOpenConfig }) => {
+export const AdminDashboard = ({ currentUser }) => {
   const [activeTab, setActiveTab] = useState('rekap'); // 'rekap' | 'karyawan' | 'backup'
   const [loading, setLoading] = useState(true);
   const [heList, setHeList] = useState([]);

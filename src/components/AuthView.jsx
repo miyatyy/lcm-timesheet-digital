@@ -23,7 +23,7 @@ import { OcrScannerModal } from './OcrScannerModal';
 import heavyBannerSvg from '../assets/heavy-equipment-banner.svg';
 import lcmLogoSvg from '../assets/lcm-logo.svg';
 
-export const AuthView = ({ onLoginSuccess, onOpenConfig }) => {
+export const AuthView = ({ onLoginSuccess }) => {
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
