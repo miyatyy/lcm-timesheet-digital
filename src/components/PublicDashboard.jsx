@@ -415,76 +415,83 @@ export const PublicDashboard = ({ onNavigateToAuth }) => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. TIGA PINTU MASUK PORTAL ROLE (OPERATOR, DRIVER, ADMIN)                 */}
+      {/* 4. INFORMASI ROLE & AKSES LOGIN TERPUSAT 1 PINTU                         */}
       {/* ========================================================================= */}
-      <section className="bg-gradient-to-br from-blue-900 via-[#1e3a8a] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
-        <div className="text-center max-w-2xl mx-auto space-y-2 mb-6 sm:mb-8">
+      <section className="bg-gradient-to-br from-blue-900 via-[#1e3a8a] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
           <span className="inline-flex items-center space-x-1.5 bg-amber-400/20 text-amber-300 text-[10px] font-black uppercase px-3 py-1 rounded-full border border-amber-400/40">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Pintu Masuk Terintegrasi</span>
+            <span>Akses Login Terpusat 1 Pintu</span>
           </span>
           <h2 className="text-xl sm:text-2xl font-black">
-            Pilih Akses Sesuai Role Kerja Anda
+            Struktur Role & Hak Akses Karyawan Site Kintap
           </h2>
           <p className="text-xs sm:text-sm text-blue-200">
-            Setiap personel terikat pada hak akses resmi untuk menjaga integritas data penambangan batubara Site Kintap.
+            Seluruh karyawan masuk melalui <strong>satu pintu login yang sama</strong>. Sistem TimeSheet Digital otomatis memverifikasi NIK Anda dan mengarahkan ke lembar kerja resmi yang sesuai dengan role penugasan Anda.
           </p>
         </div>
 
+        {/* 3 Kartu Penjelasan Role (Hanya Informasi Tugas & Hak Akses) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Role 1: Operator HE */}
-          <div 
-            onClick={() => onNavigateToAuth('login')}
-            className="bg-white/10 hover:bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/15 transition cursor-pointer hover:scale-102 flex flex-col justify-between space-y-4 group"
-          >
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/30 text-amber-400 flex items-center justify-center font-bold">
-                <HardHat className="w-6 h-6" />
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 flex flex-col justify-between space-y-3">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/30 text-amber-400 flex items-center justify-center font-bold">
+                  <HardHat className="w-5 h-5" />
+                </div>
+                <span className="bg-blue-400/20 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-400/30">
+                  Role Operasional Pit
+                </span>
               </div>
               <h3 className="font-extrabold text-base text-white">
                 Operator Alat Berat
               </h3>
               <p className="text-xs text-blue-100/80 leading-relaxed">
-                Pencatatan Jam Kerja (HM Awal & HM Akhir), kalkulasi otomatis, dan rincian pekerjaan per jam unit Excavator / Bulldozer di pit.
+                Bertanggung jawab mencatat Jam Kerja (HM Awal & HM Akhir), kalkulasi otomatis, dan rincian pekerjaan per jam unit Excavator / Bulldozer di pit.
               </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold text-amber-300 group-hover:translate-x-1 transition">
-              <span>Buka Time Sheet HE</span>
-              <ChevronRight className="w-4 h-4" />
+            <div className="pt-2 border-t border-white/10 text-[11px] font-bold text-amber-300 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Akses: Form TimeSheet HE (Terkunci Otomatis)</span>
             </div>
           </div>
 
           {/* Role 2: Driver DT */}
-          <div 
-            onClick={() => onNavigateToAuth('login')}
-            className="bg-white/10 hover:bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/15 transition cursor-pointer hover:scale-102 flex flex-col justify-between space-y-4 group"
-          >
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/30 text-amber-300 flex items-center justify-center font-bold">
-                <Truck className="w-6 h-6" />
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 flex flex-col justify-between space-y-3">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/30 text-amber-300 flex items-center justify-center font-bold">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <span className="bg-amber-400/20 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-400/30">
+                  Role Operasional Hauling
+                </span>
               </div>
               <h3 className="font-extrabold text-base text-white">
                 Driver Dump Truck
               </h3>
               <p className="text-xs text-blue-100/80 leading-relaxed">
-                Pencatatan HM unit DT, live counter ritase hauling per jam, kode excavator pemuat, dan rute pit menuju ke stockpile ROM.
+                Bertanggung jawab mencatat HM unit DT, live counter ritase hauling per jam, kode excavator pemuat, dan rute pit menuju ke stockpile ROM.
               </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold text-amber-300 group-hover:translate-x-1 transition">
-              <span>Buka Time Sheet DT</span>
-              <ChevronRight className="w-4 h-4" />
+            <div className="pt-2 border-t border-white/10 text-[11px] font-bold text-amber-300 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Akses: Form TimeSheet DT & Ritase (Terkunci Otomatis)</span>
             </div>
           </div>
 
           {/* Role 3: Admin & Pengawas */}
-          <div 
-            onClick={() => onNavigateToAuth('login')}
-            className="bg-white/10 hover:bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/15 transition cursor-pointer hover:scale-102 flex flex-col justify-between space-y-4 group"
-          >
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-sky-500/30 text-sky-300 flex items-center justify-center font-bold">
-                <Building2 className="w-6 h-6" />
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 flex flex-col justify-between space-y-3">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/30 text-sky-300 flex items-center justify-center font-bold">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <span className="bg-sky-400/20 text-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-md border border-sky-400/30">
+                  Role Pengawasan & HR
+                </span>
               </div>
               <h3 className="font-extrabold text-base text-white">
                 Pengawas & Admin Site
@@ -493,13 +500,47 @@ export const PublicDashboard = ({ onNavigateToAuth }) => {
                 Dashboard monitoring database HM seluruh unit per kolom, manajemen karyawan mandiri, dan ekspor resmi format Excel, Word, & PDF.
               </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold text-amber-300 group-hover:translate-x-1 transition">
-              <span>Masuk Dashboard Admin</span>
-              <ChevronRight className="w-4 h-4" />
+            <div className="pt-2 border-t border-white/10 text-[11px] font-bold text-amber-300 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Akses: Dashboard Monitoring Pusat Site</span>
             </div>
           </div>
 
         </div>
+
+        {/* Banner 1 Pintu Masuk Terpadu */}
+        <div className="bg-black/30 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="space-y-1 text-center sm:text-left">
+            <h4 className="font-extrabold text-sm sm:text-base text-white">
+              Satu Pintu Masuk untuk Seluruh Karyawan & Admin
+            </h4>
+            <p className="text-xs text-blue-200">
+              Tidak perlu memilih role saat login. Sistem akan memverifikasi NIK kartu identitas Anda secara otomatis.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => onNavigateToAuth('login')}
+              className="w-full sm:w-auto bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-extrabold text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+            >
+              <LogIn className="w-4 h-4 text-amber-300" />
+              <span>Masuk Sistem (1 Pintu)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateToAuth('ocr')}
+              className="w-full sm:w-auto bg-white/15 hover:bg-white/20 text-white font-bold text-xs px-4 py-3 rounded-xl border border-white/20 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+            >
+              <Camera className="w-4 h-4 text-amber-400" />
+              <span>Scan NIK (OCR)</span>
+            </button>
+          </div>
+        </div>
+
       </section>
 
       {/* ========================================================================= */}

@@ -54,6 +54,7 @@ export const isSupabaseConfigured = () => {
 
 // ==============================================================================
 // LOCAL STORAGE SEED & REPOSITORY LAYER (HYBRID FALLBACK)
+// AKUN DUMMY DIHILANGKAN TOTAL - HANYA AKUN RESMI ADMIN01 & KARYAWAN AKTIF
 // ==============================================================================
 const SEED_EMPLOYEES = [
   {
@@ -63,182 +64,14 @@ const SEED_EMPLOYEES = [
     role: 'admin',
     jabatan: 'Admin Site',
     password_hash: 'admin123',
-    phone: '081234567890',
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'emp-opt-01',
-    nik: '6301010101880001',
-    name: 'Ahmad Fauzi',
-    role: 'operator',
-    jabatan: 'Operator Alat Berat',
-    password_hash: 'fauzi123',
-    phone: '081234567891',
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'emp-dt-01',
-    nik: '6301010202890002',
-    name: 'Bambang Sugiono',
-    role: 'driver',
-    jabatan: 'Driver Dump Truck',
-    password_hash: 'bambang123',
-    phone: '081234567892',
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'emp-opt-02',
-    nik: '6301010303900003',
-    name: 'Rian Hidayat',
-    role: 'operator',
-    jabatan: 'Operator Alat Berat',
-    password_hash: 'rian123',
-    phone: '081234567893',
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'emp-dt-02',
-    nik: '6301010404910004',
-    name: 'Dedi Kurniawan',
-    role: 'driver',
-    jabatan: 'Driver Dump Truck',
-    password_hash: 'dedi123',
-    phone: '081234567894',
+    phone: '',
     is_active: true,
     created_at: new Date().toISOString()
   }
 ];
 
-const getTodayDateStr = () => {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const SEED_HE = [
-  {
-    id: 'he-demo-01',
-    nik: '6301010101880001',
-    nama_opt: 'Ahmad Fauzi',
-    tanggal: getTodayDateStr(),
-    shift: 'Shift 1 (Siang)',
-    model_unit: 'DX530LC-7M',
-    unit_code: 'EX-623',
-    hm_awal: 1450.5,
-    hm_akhir: 1461.2,
-    total_hm: 10.7,
-    jam_kerja_unit: 10.5,
-    jam_kerja_mp: 11.0,
-    opt_name: 'Ahmad Fauzi',
-    pengawas: 'Supriyanto',
-    office: 'Dwi Lestari',
-    pergantian: 'I',
-    wh_logs: [
-      { time: '06:00-07:00', kegiatan: 'P2H & Safety Talk', keterangan: 'Unit siap operasi', check_hour: true },
-      { time: '07:00-08:00', kegiatan: 'Loading OB', keterangan: 'Area Pit Kintap Barat', check_hour: true },
-      { time: '08:00-09:00', kegiatan: 'Loading OB', keterangan: 'Muat DT 145, 146', check_hour: true },
-      { time: '09:00-10:00', kegiatan: 'Loading OB', keterangan: 'Normal', check_hour: true },
-      { time: '10:00-11:00', kegiatan: 'Cleaning & Dozing', keterangan: 'Perapian front', check_hour: true },
-      { time: '11:00-12:00', kegiatan: 'Loading OB', keterangan: 'Lanjut muat', check_hour: true },
-      { time: '12:00-13:00', kegiatan: 'Istirahat & Sholat', keterangan: 'Standby kantin', check_hour: false },
-      { time: '13:00-14:00', kegiatan: 'Loading Batubara', keterangan: 'Seam C Pit 2', check_hour: true },
-      { time: '14:00-15:00', kegiatan: 'Loading Batubara', keterangan: 'Lancar', check_hour: true },
-      { time: '15:00-16:00', kegiatan: 'Stok Batu', keterangan: 'ROM Pad Arutmin', check_hour: true },
-      { time: '16:00-17:00', kegiatan: 'Loading OB', keterangan: 'Disposal Area', check_hour: true },
-      { time: '17:00-18:00', kegiatan: 'P2H Akhir & Parkir', keterangan: 'Parkir workshop aman', check_hour: true }
-    ],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'he-demo-02',
-    nik: '6301010303900003',
-    nama_opt: 'Rian Hidayat',
-    tanggal: getTodayDateStr(),
-    shift: 'Shift 1 (Siang)',
-    model_unit: 'PC2000-8',
-    unit_code: 'EXA 612',
-    hm_awal: 3200.0,
-    hm_akhir: 3211.5,
-    total_hm: 11.5,
-    jam_kerja_unit: 11.0,
-    jam_kerja_mp: 11.5,
-    opt_name: 'Rian Hidayat',
-    pengawas: 'Supriyanto',
-    office: 'Dwi Lestari',
-    pergantian: 'I',
-    wh_logs: [
-      { time: '06:00-07:00', kegiatan: 'P2H & Safety Talk', keterangan: 'Oli & hidrolik aman', check_hour: true },
-      { time: '07:00-08:00', kegiatan: 'Loading Top Soil', keterangan: 'Fleet A', check_hour: true },
-      { time: '08:00-09:00', kegiatan: 'Loading Top Soil', keterangan: 'Lancar', check_hour: true },
-      { time: '09:00-10:00', kegiatan: 'Loading OB', keterangan: 'Fleet B', check_hour: true },
-      { time: '10:00-11:00', kegiatan: 'Loading OB', keterangan: 'Lancar', check_hour: true },
-      { time: '11:00-12:00', kegiatan: 'Loading OB', keterangan: 'Lancar', check_hour: true },
-      { time: '12:00-13:00', kegiatan: 'Break / Istirahat', keterangan: 'Kantin Pit', check_hour: false },
-      { time: '13:00-14:00', kegiatan: 'Loading OB', keterangan: 'Lancar', check_hour: true },
-      { time: '14:00-15:00', kegiatan: 'Loading Batubara', keterangan: 'Pit Kintap Timur', check_hour: true },
-      { time: '15:00-16:00', kegiatan: 'Loading Batubara', keterangan: 'Lancar', check_hour: true },
-      { time: '16:00-17:00', kegiatan: 'Cleaning Bench', keterangan: 'Perataan jalan', check_hour: true },
-      { time: '17:00-18:00', kegiatan: 'Parkir & Serah Terima', keterangan: 'Siap shift 2', check_hour: true }
-    ],
-    created_at: new Date().toISOString()
-  }
-];
-
-const SEED_DT = [
-  {
-    id: 'dt-demo-01',
-    nik: '6301010202890002',
-    nama_opt: 'Bambang Sugiono',
-    pergantian: 'I',
-    tanggal: getTodayDateStr(),
-    shift: 'Shift 1 (Siang)',
-    unit_code: 'DT 145',
-    model_unit: 'Hino 500 FM 260 JD',
-    hm_awal: 8920.0,
-    hm_akhir: 8930.5,
-    total_hm: 10.5,
-    jam_kerja_unit: 10.0,
-    jam_kerja_mp: 11.0,
-    opt_name: 'Bambang Sugiono',
-    pengawas: 'Supriyanto',
-    office: 'Dwi Lestari',
-    wh_logs: [
-      { time: '06:00-07:00', kegiatan: 'P2H & Briefing', keterangan: 'Ban & rem baik', check_hour: true },
-      { time: '07:00-08:00', kegiatan: 'Hauling OB', keterangan: 'Pit to Disposal 2', check_hour: true },
-      { time: '08:00-09:00', kegiatan: 'Hauling OB', keterangan: 'Lancar', check_hour: true },
-      { time: '09:00-10:00', kegiatan: 'Hauling OB', keterangan: 'Lancar', check_hour: true },
-      { time: '10:00-11:00', kegiatan: 'Hauling OB', keterangan: 'Lancar', check_hour: true },
-      { time: '11:00-12:00', kegiatan: 'Hauling OB', keterangan: 'Lancar', check_hour: true },
-      { time: '12:00-13:00', kegiatan: 'Istirahat / Lunch', keterangan: 'Standby kantin', check_hour: false },
-      { time: '13:00-14:00', kegiatan: 'Hauling Batubara', keterangan: 'ROM Pad Kintap', check_hour: true },
-      { time: '14:00-15:00', kegiatan: 'Hauling Batubara', keterangan: 'Lancar', check_hour: true },
-      { time: '15:00-16:00', kegiatan: 'Hauling Batubara', keterangan: 'Lancar', check_hour: true },
-      { time: '16:00-17:00', kegiatan: 'Hauling OB', keterangan: 'Disposal 2', check_hour: true },
-      { time: '17:00-18:00', kegiatan: 'Refueling & Parkir', keterangan: 'Solar terisi penuh', check_hour: true }
-    ],
-    ritase_logs: [
-      { time: '07-08', ex_code: 'EX-623', count: 3 },
-      { time: '08-09', ex_code: 'EX-623', count: 3 },
-      { time: '09-10', ex_code: 'EX-623', count: 4 },
-      { time: '10-11', ex_code: 'EX-623', count: 3 },
-      { time: '11-12', ex_code: 'EX-623', count: 3 },
-      { time: '12-13', ex_code: '-', count: 0 },
-      { time: '13-14', ex_code: 'EXA 612', count: 2 },
-      { time: '14-15', ex_code: 'EXA 612', count: 3 },
-      { time: '15-16', ex_code: 'EXA 612', count: 2 },
-      { time: '16-17', ex_code: 'EX-623', count: 3 },
-      { time: '17-18', ex_code: 'EX-623', count: 2 }
-    ],
-    total_ritase: 28,
-    created_at: new Date().toISOString()
-  }
-];
+const SEED_HE = [];
+const SEED_DT = [];
 
 // Helper LocalStorage
 const getLocalStorage = (key, defaultVal) => {
@@ -248,7 +81,30 @@ const getLocalStorage = (key, defaultVal) => {
       localStorage.setItem(key, JSON.stringify(defaultVal));
       return defaultVal;
     }
-    return JSON.parse(val);
+    const parsed = JSON.parse(val);
+
+    // Otomatis bersihkan akun dummy lama jika masih tersimpan di browser
+    if (key === 'lcm_employees' && Array.isArray(parsed)) {
+      const cleaned = parsed.filter(e => 
+        !['6301010101880001', '6301010202890002', '6301010303900003', '6301010404910004'].includes(e.nik) &&
+        !['Ahmad Fauzi', 'Bambang Sugiono', 'Rian Hidayat', 'Dedi Kurniawan'].includes(e.name)
+      );
+      if (cleaned.length !== parsed.length) {
+        localStorage.setItem(key, JSON.stringify(cleaned));
+      }
+      return cleaned;
+    }
+
+    // Otomatis bersihkan lembar kerja dummy lama
+    if ((key === 'lcm_he_sheets' || key === 'lcm_dt_sheets') && Array.isArray(parsed)) {
+      const cleaned = parsed.filter(s => s && s.id && !s.id.startsWith('he-demo') && !s.id.startsWith('dt-demo'));
+      if (cleaned.length !== parsed.length) {
+        localStorage.setItem(key, JSON.stringify(cleaned));
+      }
+      return cleaned;
+    }
+
+    return parsed;
   } catch (e) {
     return defaultVal;
   }
