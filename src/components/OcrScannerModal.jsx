@@ -205,12 +205,13 @@ export const OcrScannerModal = ({
   // Submit result back
   const handleConfirm = () => {
     if (!nikInput.trim()) {
-      setErrorMessage('NIK wajib terisi!');
+      setErrorMessage('NIK / No. ID wajib terisi!');
       return;
     }
     onScanComplete({
       nik: nikInput.trim(),
       name: nameInput.trim(),
+      phone: ocrResult?.phone || '',
       rawText: ocrResult?.rawText || ''
     });
     onClose();
@@ -439,25 +440,41 @@ export const OcrScannerModal = ({
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
               <div className="flex items-center space-x-1.5 text-xs font-extrabold text-[#0F5132]">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Hasil Ekstraksi OCR (Bisa Diedit Jika Ada Angka Kurang Pas):</span>
+                <span>Hasil Ekstraksi OCR (Bisa Diedit Jika Ada Huruf/Angka Kurang Pas):</span>
               </div>
 
-              {/* Input NIK */}
+              {/* Input NIK / No. ID / No. Reg */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Nomor Induk Kependudukan (NIK) / No ID Karyawan:
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700">
+                    NIK / No. ID / No. Reg Karyawan:
+                  </label>
+                  <span className="text-[10px] text-[#0F5132] font-semibold bg-emerald-100 px-2 py-0.2 rounded">
+                    Huruf & Angka
+                  </span>
+                </div>
                 <div className="relative">
                   <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={nikInput}
                     onChange={(e) => setNikInput(e.target.value)}
-                    placeholder="Contoh: 6301010101880001 atau OPT-62301"
+                    placeholder="Contoh: 230104040083 atau LCM-023 atau 6301..."
                     className="w-full pl-9 pr-3 py-2 text-xs font-mono font-bold bg-white rounded-xl border border-slate-300 focus:border-[#0F5132] focus:ring-1 focus:ring-[#0F5132] outline-none"
                   />
                 </div>
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  * NIK bisa kombinasi huruf & angka sesuai ID Card / Mine Permit. Nomor HP otomatis dipisahkan.
+                </span>
               </div>
+
+              {/* Tampilkan info nomor telepon yang berhasil dipisahkan jika ada */}
+              {ocrResult.phone && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-amber-900 font-semibold">No. HP / Telepon Terdeteksi:</span>
+                  <span className="font-mono font-bold text-amber-950">{ocrResult.phone}</span>
+                </div>
+              )}
 
               {/* Input Nama Lengkap (Terutama saat registrasi) */}
               {mode === 'register' && (

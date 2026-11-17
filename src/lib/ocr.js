@@ -72,72 +72,152 @@ export const preprocessImageForOCR = (imageSource) => {
 };
 
 /**
- * Ekstraksi NIK dan Nama dari teks OCR kartu identitas / KTP / ID Card karyawan
+ * Ekstraksi NIK dan Nama dari teks OCR kartu identitas (KTP, ID Card Karyawan, Mine Permit)
+ * MENDUKUNG NIK ALFANUMERIK (kombinasi huruf & angka, misal: LCM-023, 230104040083, OPT-623).
+ * STRICTLY MEMISAHKAN nomor telepon (08... / 628...) agar TIDAK tertukar dengan NIK!
  */
 export const parseIdCardText = (rawText) => {
   const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
   let detectedNik = '';
   let detectedName = '';
+  let detectedPhone = '';
 
-  // 1. Regex pencarian NIK (16 digit angka KTP atau kode karyawan seperti OPT-62301 / DT-14501 / digit 6-16)
-  // Menghandle OCR yang salah membaca O jadi 0, I/l jadi 1, B jadi 8
-  const cleanForDigits = rawText.replace(/[oO]/g, '0').replace(/[Il|]/g, '1');
-  
-  // 16 digit KTP standar
-  const nik16Match = cleanForDigits.match(/\b(\d{16})\b/);
-  if (nik16Match) {
-    detectedNik = nik16Match[1];
-  } else {
-    // Cari baris yang mengandung kata 'NIK' atau 'NO'
-    for (const line of lines) {
-      const nikLineMatch = line.match(/(?:NIK|NOMOR|NO|ID)[^\d]*(\d{6,16})/i);
-      if (nikLineMatch) {
-        detectedNik = nikLineMatch[1];
+  // Helper: Deteksi apakah sebuah string adalah nomor telepon Indonesia
+  const isPhoneNumber = (str) => {
+    if (!str) return false;
+    const cleaned = String(str).replace(/[\s\-\.\(\)]/g, '');
+    return /^(?:08|\+?628|02\d|05\d)\d{7,11}$/.test(cleaned);
+  };
+
+  // Helper: Deteksi apakah sebuah string adalah format tanggal
+  const isDate = (str) => {
+    if (!str) return false;
+    return /^\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4}$/.test(String(str).trim());
+  };
+
+  // Helper: Deteksi kata-kata header/kartu umum yang bukan NIK
+  const isExcludedHeader = (str) => {
+    if (!str) return true;
+    return /^(MINE|PERMIT|ARUTMIN|MANDIRI|KINTAP|INDONESIA|JABATAN|DRIVER|OPERATOR|BERLAKU|HINGGA|COAL|SITE|COMPANY|PT|LAZ|KARTU|TANDA|PENDUDUK|PROVINSI|KABUPATEN)$/i.test(String(str).trim());
+  };
+
+  // 1. Ekstraksi Nomor Telepon jika ada di kartu (agar tidak pernah diambil sebagai NIK)
+  for (const line of lines) {
+    const phoneMatch = line.match(/(?:TELP|HP|PHONE|WA|WHATSAPP|KONTAK|EMERGENCY)[^\d]*((?:\+?62|08)\d[\d\s\-\.]{7,14})/i);
+    if (phoneMatch) {
+      const cleanP = phoneMatch[1].replace(/[\s\-\.]/g, '');
+      if (isPhoneNumber(cleanP)) {
+        detectedPhone = cleanP;
         break;
-      }
-      // Kode ID Card karyawan misal OPT-123 atau DT-456
-      const empCodeMatch = line.match(/\b(OPT-\d+|DT-\d+|LCM-\d+|EX-\d+)\b/i);
-      if (empCodeMatch) {
-        detectedNik = empCodeMatch[1].toUpperCase();
-        break;
-      }
-    }
-    // Jika masih belum ketemu, cari deretan angka 8-16 digit terpanjang
-    if (!detectedNik) {
-      const anyNumber = cleanForDigits.match(/\b(\d{8,16})\b/);
-      if (anyNumber) {
-        detectedNik = anyNumber[1];
       }
     }
   }
 
-  // 2. Pencarian Nama
+  // Jika belum dapat dari label, cek pola no hp standalone
+  if (!detectedPhone) {
+    const anyPhone = rawText.match(/\b((?:\+?62|08)\d{8,11})\b/);
+    if (anyPhone && isPhoneNumber(anyPhone[1])) {
+      detectedPhone = anyPhone[1];
+    }
+  }
+
+  // 2. Ekstraksi NIK / No. ID / No. Reg (MENDUKUNG ALFANUMERIK: HURUF & ANGKA)
+  // Pola A: Baris yang diawali kata kunci NIK / NO ID / NO REG / ID / REG / NRP / NIP / NOMOR
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Lewati baris kontak/telepon
+    if (line.match(/(?:TELP|HP|PHONE|WA|WHATSAPP|KONTAK|EMERGENCY)/i)) continue;
+
+    // Pola A1: "NO. REG : 230104040083", "NO. ID : LCM-023", "NIK : 6301...", "ID : OPT-623"
+    const labelMatch = line.match(/(?:NIK|NO\.?\s*ID|ID\s*NO|NO\.?\s*REG|REG\s*NO|NO\.?\s*INDUK|MINE\s*PERMIT\s*NO|NRP|NIP|BADGE\s*NO|NOMOR|NO)[^\w\d\n:]*[:\s\-]+([A-Za-z0-9\/\-]{3,30})/i);
+    if (labelMatch) {
+      const cand = labelMatch[1].trim();
+      if (!isPhoneNumber(cand) && !isDate(cand) && !isExcludedHeader(cand)) {
+        detectedNik = cand;
+        break;
+      }
+    }
+
+    // Pola A2: Label di baris ini, nilainya di baris berikutnya
+    if (line.match(/^(?:NIK|NO\.?\s*ID|ID\s*NO|NO\.?\s*REG|REG\s*NO|NRP|NIP|BADGE\s*NO)[:\s\-]*$/i) && lines[i + 1]) {
+      const nextCand = lines[i + 1].trim();
+      if (!isPhoneNumber(nextCand) && !isDate(nextCand) && !isExcludedHeader(nextCand) && nextCand.length >= 3 && nextCand.length <= 30) {
+        detectedNik = nextCand;
+        break;
+      }
+    }
+  }
+
+  // Pola B: KTP 16 digit standar jika belum ketemu (pastikan BUKAN no hp)
+  if (!detectedNik) {
+    const cleanForDigits = rawText.replace(/[oO]/g, '0').replace(/[Il|]/g, '1');
+    const nik16Match = cleanForDigits.match(/\b(\d{16})\b/);
+    if (nik16Match && !isPhoneNumber(nik16Match[1])) {
+      detectedNik = nik16Match[1];
+    }
+  }
+
+  // Pola C: Kode alfanumerik format perusahaan (contoh: LCM-023, OPT-623, DT-145, ARU-992, EX-623)
+  if (!detectedNik) {
+    for (const line of lines) {
+      if (line.match(/(?:TELP|HP|PHONE|WA|KONTAK|EMERGENCY)/i)) continue;
+      const codeMatch = line.match(/\b([A-Za-z]{2,6}[-\s]?[0-9]{2,12})\b/);
+      if (codeMatch) {
+        const cand = codeMatch[1].trim();
+        if (!isPhoneNumber(cand) && !isExcludedHeader(cand)) {
+          detectedNik = cand.toUpperCase();
+          break;
+        }
+      }
+    }
+  }
+
+  // Pola D: Token alfanumerik 5-18 karakter yang memiliki angka (BUKAN phone, BUKAN date, BUKAN header)
+  if (!detectedNik) {
+    const tokens = rawText.match(/\b([A-Za-z0-9\/\-]{5,18})\b/g) || [];
+    for (const token of tokens) {
+      if (!isPhoneNumber(token) && !isDate(token) && !isExcludedHeader(token) && /\d/.test(token)) {
+        detectedNik = token;
+        break;
+      }
+    }
+  }
+
+  // 3. Ekstraksi Nama
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     // Pola "Nama : [Nama Lengkap]"
     const nameMatch = line.match(/(?:NAMA|NAME)[^\w\s]*\s*([A-Za-z\s.,'\-]{3,})/i);
     if (nameMatch) {
-      detectedName = nameMatch[1].trim();
-      break;
+      const n = nameMatch[1].trim();
+      if (!isExcludedHeader(n) && n.length >= 3) {
+        detectedName = n;
+        break;
+      }
     }
 
-    // Jika baris berisi kata NIK, seringkali baris berikutnya adalah nama
-    if (line.match(/\bNIK\b/i) && lines[i + 1]) {
+    // Jika baris berisi label NIK/NO ID, baris berikutnya seringkali adalah Nama
+    if (line.match(/\b(NIK|NO\.?\s*ID|NO\.?\s*REG)\b/i) && lines[i + 1]) {
       const nextLine = lines[i + 1].trim();
-      if (!nextLine.match(/\b(Tempat|Lahir|Jenis|Kelamin|Alamat|Agama|Gol)\b/i) && nextLine.length > 3) {
-        // Bersihkan karakter non-huruf
+      if (!nextLine.match(/\b(Tempat|Lahir|Jenis|Kelamin|Alamat|Agama|Gol|Jabatan|Company|Perusahaan)\b/i) && nextLine.length > 3) {
         const cleaned = nextLine.replace(/[^A-Za-z\s.,'-]/g, '').trim();
-        if (cleaned.length >= 3 && !detectedName) {
+        if (cleaned.length >= 3 && !detectedName && !isExcludedHeader(cleaned)) {
           detectedName = cleaned;
         }
       }
     }
   }
 
-  // Jika nama masih kosong, cari baris huruf kapital yang bukan judul KTP/Provinsi
+  // Fallback Nama dari baris huruf kapital (2-4 kata)
   if (!detectedName) {
-    const ignoredKeywords = ['PROVINSI', 'KABUPATEN', 'KOTA', 'REPUBLIK', 'INDONESIA', 'KARTU', 'TANDA', 'PENDUDUK', 'GOL', 'DARAH', 'AGAMA', 'STATUS', 'PERKAWINAN', 'PEKERJAAN', 'KEWARGANEGARAAN', 'BERLAKU', 'HINGGA'];
+    const ignoredKeywords = [
+      'PROVINSI', 'KABUPATEN', 'KOTA', 'REPUBLIK', 'INDONESIA', 'KARTU', 'TANDA',
+      'PENDUDUK', 'GOL', 'DARAH', 'AGAMA', 'STATUS', 'PERKAWINAN', 'PEKERJAAN',
+      'KEWARGANEGARAAN', 'BERLAKU', 'HINGGA', 'MINE', 'PERMIT', 'PT', 'LAZ',
+      'COAL', 'MANDIRI', 'ARUTMIN', 'KINTAP', 'SITE', 'JABATAN', 'PERUSAHAAN'
+    ];
     for (const line of lines) {
       const cleanUpper = line.replace(/[^A-Z\s]/g, '').trim();
       const words = cleanUpper.split(/\s+/);
@@ -162,6 +242,7 @@ export const parseIdCardText = (rawText) => {
   return {
     nik: detectedNik,
     name: detectedName,
+    phone: detectedPhone,
     rawText
   };
 };
@@ -208,6 +289,7 @@ export const runClientOCR = async (imageInput, onProgress) => {
       success: true,
       nik: parsed.nik,
       name: parsed.name,
+      phone: parsed.phone,
       confidence,
       rawText
     };

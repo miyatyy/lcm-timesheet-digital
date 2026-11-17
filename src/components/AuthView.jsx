@@ -183,7 +183,8 @@ export const AuthView = ({ onLoginSuccess }) => {
       // Mode registrasi
       if (data.nik) setRegNik(data.nik);
       if (data.name) setRegName(data.name);
-      setSuccessMsg('Data kartu identitas berhasil diekstrak! Silakan lengkapi jabatan dan buat password.');
+      if (data.phone) setRegPhone(data.phone);
+      setSuccessMsg('Data kartu identitas berhasil diekstrak! NIK & No. HP terisi otomatis. Silakan lengkapi jabatan dan buat password.');
     }
   };
 
