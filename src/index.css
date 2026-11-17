@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-lcm-dark: #0a3622;
+  --color-lcm-primary: #0F5132;
+  --color-lcm-light: #198754;
+  --color-lcm-subtle: #e8f5e9;
+  --color-lcm-surface: #F8FAFC;
+  --color-lcm-border: #e2e8f0;
+  --color-lcm-accent: #f59e0b;
+}
+
+@layer base {
+  body {
+    background-color: #F8FAFC;
+    color: #1e293b;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Scrollbar for sleek tables */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+}
