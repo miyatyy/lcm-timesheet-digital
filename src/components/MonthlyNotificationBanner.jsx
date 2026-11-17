@@ -48,7 +48,7 @@ export const MonthlyNotificationBanner = () => {
 
         <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
           {doneMsg ? (
-            <span className="font-bold text-emerald-950 flex items-center space-x-1">
+            <span className="font-bold text-blue-950 flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{doneMsg}</span>
             </span>

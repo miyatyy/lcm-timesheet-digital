@@ -201,7 +201,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
           <div className="text-white space-y-1.5">
             <div className="flex items-center space-x-2">
-              <span className="bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+              <span className="bg-blue-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
                 Role: Operator Alat Berat
               </span>
               <span className="bg-amber-400 text-slate-900 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
@@ -211,7 +211,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
               Time Sheet Heavy Equipment
             </h2>
-            <p className="text-xs text-emerald-100 font-medium max-w-md">
+            <p className="text-xs text-blue-100 font-medium max-w-md">
               Pencatatan Jam Kerja (HM) Excavator & Bulldozer • PT. LAZ COAL MANDIRI (Site Arutmin Kintap)
             </p>
           </div>
@@ -231,7 +231,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
                 Lembar Jam Kerja Alat Berat
               </h2>
-              <span className="bg-emerald-100 text-[#0F5132] text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+              <span className="bg-blue-100 text-[#1e3a8a] text-xs font-bold px-2 py-0.5 rounded-full border border-blue-300">
                 DX530LC-7M / EX-623
               </span>
             </div>
@@ -247,7 +247,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             onClick={handlePrintCurrentPDF}
             className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-300 flex items-center space-x-1.5 transition cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-[#0F5132]" />
+            <Printer className="w-4 h-4 text-[#1e3a8a]" />
             <span>Cetak PDF</span>
           </button>
 
@@ -267,8 +267,8 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
 
       {/* Alert Banners */}
       {saveSuccess && (
-        <div className="bg-emerald-50 border border-emerald-300 text-[#0F5132] text-xs p-4 rounded-2xl flex items-center space-x-2.5 shadow-sm animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="bg-blue-50 border border-blue-300 text-[#1e3a8a] text-xs p-4 rounded-2xl flex items-center space-x-2.5 shadow-sm animate-in fade-in">
+          <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
           <div className="font-bold">
             Berhasil! Lembar Time Sheet Alat Berat telah tersimpan ke database & rekap harian.
           </div>
@@ -290,7 +290,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
         {/* ========================================================================= */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 space-y-4">
           <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
-            <Calendar className="w-4 h-4 text-[#0F5132]" />
+            <Calendar className="w-4 h-4 text-[#1e3a8a]" />
             <h3 className="font-bold text-sm text-slate-800">
               1. Header Informasi Unit & Operator
             </h3>
@@ -307,7 +307,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 type="date"
                 value={tanggal}
                 onChange={(e) => setTanggal(e.target.value)}
-                className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                 required
               />
             </div>
@@ -320,7 +320,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
               <select
                 value={shift}
                 onChange={(e) => setShift(e.target.value)}
-                className="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                className="w-full text-xs font-bold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
               >
                 <option value="Shift 1 (Siang)">Shift 1 (Siang: 06:00 - 18:00)</option>
                 <option value="Shift 2 (Malam)">Shift 2 (Malam: 18:00 - 06:00)</option>
@@ -337,10 +337,10 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                   type="text"
                   value={namaOpt}
                   onChange={(e) => setNamaOpt(e.target.value)}
-                  className="w-full text-xs font-bold px-3 py-2 bg-emerald-50/60 border border-emerald-300 rounded-xl text-[#0F5132] outline-none"
+                  className="w-full text-xs font-bold px-3 py-2 bg-blue-50/60 border border-blue-300 rounded-xl text-[#1e3a8a] outline-none"
                   required
                 />
-                <UserCheck className="w-3.5 h-3.5 text-emerald-600 absolute right-3 top-2.5" />
+                <UserCheck className="w-3.5 h-3.5 text-blue-600 absolute right-3 top-2.5" />
               </div>
             </div>
 
@@ -368,7 +368,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 value={modelUnit}
                 onChange={(e) => setModelUnit(e.target.value)}
                 placeholder="Contoh: DX530LC-7M"
-                className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                 required
               />
               <datalist id="model-list">
@@ -390,7 +390,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 value={unitCode}
                 onChange={(e) => setUnitCode(e.target.value)}
                 placeholder="Contoh: EX-623"
-                className="w-full text-xs font-mono font-extrabold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] text-[#0F5132] outline-none uppercase"
+                className="w-full text-xs font-mono font-extrabold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] text-[#1e3a8a] outline-none uppercase"
                 required
               />
             </div>
@@ -457,8 +457,8 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             </div>
 
             {/* Kalkulasi Otomatis Total HM */}
-            <div className="bg-[#0F5132] text-white p-2.5 rounded-xl text-center shadow-xs">
-              <span className="block text-[10px] font-medium text-emerald-200 uppercase tracking-wider">
+            <div className="bg-[#1e3a8a] text-white p-2.5 rounded-xl text-center shadow-xs">
+              <span className="block text-[10px] font-medium text-blue-200 uppercase tracking-wider">
                 Total HM (Otomatis)
               </span>
               <span className="text-base font-extrabold font-mono text-amber-300">
@@ -502,7 +502,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 space-y-4">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-[#0F5132]" />
+              <Clock className="w-4 h-4 text-[#1e3a8a]" />
               <h3 className="font-bold text-sm text-slate-800">
                 2. Tabel Jam Kerja (WH) & Rincian Kegiatan
               </h3>
@@ -513,14 +513,14 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
           </div>
 
           {/* Mobile Swipe Hint */}
-          <div className="sm:hidden flex items-center justify-between text-[11px] text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+          <div className="sm:hidden flex items-center justify-between text-[11px] text-blue-800 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200">
             <span className="font-semibold flex items-center">👉 Geser tabel ke samping untuk mengisi kolom</span>
-            <span className="font-mono text-[10px] bg-emerald-200/70 px-1.5 py-0.5 rounded">12 Jam</span>
+            <span className="font-mono text-[10px] bg-blue-200/70 px-1.5 py-0.5 rounded">12 Jam</span>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-2xs">
             <table className="w-full text-left text-xs min-w-[650px]">
-              <thead className="bg-[#0F5132] text-white">
+              <thead className="bg-[#1e3a8a] text-white">
                 <tr>
                   <th className="py-2.5 px-3 font-bold w-12 text-center">No</th>
                   <th className="py-2.5 px-3 font-bold w-32">Jam Kerja (WH)</th>
@@ -546,7 +546,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                           value={row.kegiatan}
                           onChange={(e) => handleRowChange(idx, 'kegiatan', e.target.value)}
                           placeholder="Pilih / ketik kegiatan"
-                          className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-[#0F5132] outline-none bg-white font-medium"
+                          className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-[#1e3a8a] outline-none bg-white font-medium"
                         />
                         <datalist id={`act-${idx}`}>
                           {COMMON_ACTIVITIES.map((act, aIdx) => (
@@ -561,7 +561,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                         value={row.keterangan}
                         onChange={(e) => handleRowChange(idx, 'keterangan', e.target.value)}
                         placeholder="Area pit / bench"
-                        className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-[#0F5132] outline-none bg-white"
+                        className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-[#1e3a8a] outline-none bg-white"
                       />
                     </td>
                     <td className="py-2 px-3 text-center">
@@ -569,7 +569,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                         type="checkbox"
                         checked={row.check_hour}
                         onChange={(e) => handleRowChange(idx, 'check_hour', e.target.checked)}
-                        className="w-4 h-4 rounded text-[#0F5132] focus:ring-[#0F5132] border-slate-300 cursor-pointer accent-[#0F5132]"
+                        className="w-4 h-4 rounded text-[#1e3a8a] focus:ring-[#1e3a8a] border-slate-300 cursor-pointer accent-[#1e3a8a]"
                       />
                     </td>
                   </tr>
@@ -586,14 +586,14 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             onClick={handlePrintCurrentPDF}
             className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold py-3 px-6 rounded-2xl border border-slate-300 flex items-center justify-center space-x-2 transition cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-[#0F5132]" />
+            <Printer className="w-4 h-4 text-[#1e3a8a]" />
             <span>Cetak PDF Lembar Kerja</span>
           </button>
 
           <button
             type="submit"
             disabled={saving}
-            className="w-full sm:w-auto bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-bold py-3 px-8 rounded-2xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 transition cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3 px-8 rounded-2xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 transition cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4 text-amber-400" />
             <span>{saving ? 'Menyimpan...' : 'Simpan Time Sheet Alat Berat'}</span>
@@ -608,12 +608,12 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
       {autoLogoutModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-[#0F5132] flex items-center justify-center mx-auto shadow-inner">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600 animate-bounce" />
+            <div className="w-16 h-16 rounded-full bg-blue-100 text-[#1e3a8a] flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 className="w-10 h-10 text-blue-600 animate-bounce" />
             </div>
 
             <div className="space-y-1">
-              <span className="bg-emerald-100 text-[#0F5132] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+              <span className="bg-blue-100 text-[#1e3a8a] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
                 Tersimpan Komplit & Terdata di Admin
               </span>
               <h3 className="text-lg font-black text-slate-900">
@@ -628,7 +628,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1.5 text-left font-medium">
               <div className="flex justify-between">
                 <span className="text-slate-500">No. Unit:</span>
-                <span className="font-mono font-bold text-[#0F5132]">{unitCode} ({modelUnit})</span>
+                <span className="font-mono font-bold text-[#1e3a8a]">{unitCode} ({modelUnit})</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Tanggal & Shift:</span>
@@ -639,8 +639,8 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 <span className="font-mono font-bold text-slate-900">{hmAwal} &rarr; {hmAkhir}</span>
               </div>
               <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold">
-                <span className="text-slate-700">Total HM Tercatat:</span>
-                <span className="font-mono text-emerald-700 text-sm">{totalHm.toFixed(2)} Jam</span>
+                <span className="text-slate-700">Total HM Logika:</span>
+                <span className="font-mono text-blue-700 text-sm">{totalHm.toFixed(2)} Jam</span>
               </div>
             </div>
 
@@ -667,7 +667,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 }}
                 className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-3 px-3 rounded-xl border border-slate-300 flex items-center justify-center space-x-1.5 transition cursor-pointer"
               >
-                <Printer className="w-4 h-4 text-[#0F5132]" />
+                <Printer className="w-4 h-4 text-[#1e3a8a]" />
                 <span>Cetak PDF & Logout</span>
               </button>
 

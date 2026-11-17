@@ -17,7 +17,7 @@ export const exportDatabaseHMToWord = async (heList = [], dtList = [], filterDat
             children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 18 })]
           })
         ],
-        shading: { fill: '0F5132' } // Emerald LCM
+        shading: { fill: '1E3A8A' } // Royal Blue LCM
       }))
     })
   ];
@@ -90,7 +90,7 @@ export const exportDatabaseHMToWord = async (heList = [], dtList = [], filterDat
                 text: 'PT. LAZ COAL MANDIRI',
                 bold: true,
                 size: 28,
-                color: '0F5132'
+                color: '1E3A8A'
               })
             ]
           }),

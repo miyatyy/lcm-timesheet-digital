@@ -5,8 +5,8 @@ import autoTable from 'jspdf-autotable';
 const drawHeader = (doc, title, subtitle = 'SITE ARUTMIN INDONESIA - KINTAP, KALIMANTAN SELATAN') => {
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Emerald Top Stripe
-  doc.setFillColor(15, 81, 50); // #0F5132
+  // Royal Blue Top Stripe
+  doc.setFillColor(30, 58, 138); // #1E3A8A
   doc.rect(0, 0, pageWidth, 18, 'F');
 
   // Gold accent line
@@ -24,7 +24,7 @@ const drawHeader = (doc, title, subtitle = 'SITE ARUTMIN INDONESIA - KINTAP, KAL
   doc.text(subtitle, 14, 15.5);
 
   // Document Title
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(title, pageWidth / 2, 28, { align: 'center' });
@@ -119,7 +119,7 @@ export const printHEDailyPDF = (record) => {
   doc.setFont('helvetica', 'bold');
   doc.text('No Unit / Code:', leftX, topY + 24);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.text(record.unit_code || '-', leftX + 32, topY + 24);
   doc.setTextColor(15, 23, 42);
 
@@ -137,7 +137,7 @@ export const printHEDailyPDF = (record) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Total HM Unit:', rightX, topY + 12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.text(`${Number(record.total_hm || 0).toFixed(2)} Jam`, rightX + 36, topY + 12);
   doc.setTextColor(15, 23, 42);
 
@@ -166,7 +166,7 @@ export const printHEDailyPDF = (record) => {
     body: whRows.length > 0 ? whRows : [['1', '06:00-18:00', 'Operasi Normal', '-', '✔']],
     theme: 'grid',
     headStyles: {
-      fillColor: [15, 81, 50],
+      fillColor: [30, 58, 138],
       textColor: [255, 255, 255],
       fontSize: 8,
       halign: 'center',
@@ -239,7 +239,7 @@ export const printDTDailyPDF = (record) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Unit Code:', leftX, topY + 24);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.text(record.unit_code || '-', leftX + 32, topY + 24);
   doc.setTextColor(15, 23, 42);
 
@@ -257,7 +257,7 @@ export const printDTDailyPDF = (record) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Total HM Unit:', rightX, topY + 12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.text(`${Number(record.total_hm || 0).toFixed(2)} Jam`, rightX + 36, topY + 12);
   doc.setTextColor(15, 23, 42);
 
@@ -288,7 +288,7 @@ export const printDTDailyPDF = (record) => {
     body: whRows.length > 0 ? whRows : [['1', '06:00-18:00', 'Hauling OB / Batubara', '-', '✔']],
     theme: 'grid',
     headStyles: {
-      fillColor: [15, 81, 50],
+      fillColor: [30, 58, 138],
       textColor: [255, 255, 255],
       fontSize: 7.5,
       halign: 'center',
@@ -314,7 +314,7 @@ export const printDTDailyPDF = (record) => {
   let afterWH = doc.lastAutoTable.finalY + 6;
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.text('REKAPITULASI RITASE PER JAM:', 14, afterWH);
 
   const ritaseRows = (record.ritase_logs || []).map(r => [
@@ -337,7 +337,7 @@ export const printDTDailyPDF = (record) => {
     },
     footStyles: {
       fillColor: [241, 245, 249],
-      textColor: [15, 81, 50],
+      textColor: [30, 58, 138],
       fontStyle: 'bold',
       fontSize: 7.5,
       halign: 'center'
@@ -380,7 +380,7 @@ export const exportMonthlyBackupPDF = (heList = [], dtList = [], monthLabel = ''
   doc.text(`Total Laporan DT: ${dtList.length} Lembar | Total HM DT: ${totalDTHM.toFixed(2)} Jam | Total Ritase: ${totalRitase} Rit`, 14, 47);
 
   // Table 1: HE Timesheets
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.setFontSize(9);
   doc.text('DAFTAR LEMBAR KERJA ALAT BERAT (HE)', 14, 54);
 
@@ -403,7 +403,7 @@ export const exportMonthlyBackupPDF = (heList = [], dtList = [], monthLabel = ''
     body: heTableData.length > 0 ? heTableData : [['-', '-', '-', '-', '-', '-', '-', '-', '-', '-']],
     theme: 'striped',
     headStyles: {
-      fillColor: [15, 81, 50],
+      fillColor: [30, 58, 138],
       fontSize: 7.5,
       halign: 'center'
     },
@@ -422,7 +422,7 @@ export const exportMonthlyBackupPDF = (heList = [], dtList = [], monthLabel = ''
     nextY = 44;
   }
 
-  doc.setTextColor(15, 81, 50);
+  doc.setTextColor(30, 58, 138);
   doc.setFontSize(9);
   doc.text('DAFTAR LEMBAR KERJA DUMP TRUCK (DT)', 14, nextY);
 

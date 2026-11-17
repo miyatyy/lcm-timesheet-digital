@@ -244,7 +244,7 @@ export const AuthView = ({ onLoginSuccess }) => {
             className="w-full h-full object-cover opacity-60 scale-105 select-none"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a3622] via-black/40 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#1e3a8a]/40 to-black/70" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
             <div className="bg-white/95 backdrop-blur-md p-2 rounded-full shadow-2xl border-2 border-amber-400 mb-2 flex items-center justify-center">
@@ -275,7 +275,7 @@ export const AuthView = ({ onLoginSuccess }) => {
             }}
             className={`flex-1 py-3 text-xs sm:text-sm font-bold rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer ${
               activeTab === 'login'
-                ? 'bg-[#0F5132] text-white shadow-sm'
+                ? 'bg-[#1e3a8a] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
@@ -292,7 +292,7 @@ export const AuthView = ({ onLoginSuccess }) => {
             }}
             className={`flex-1 py-3 text-xs sm:text-sm font-bold rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer ${
               activeTab === 'register'
-                ? 'bg-[#0F5132] text-white shadow-sm'
+                ? 'bg-[#1e3a8a] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
@@ -311,8 +311,8 @@ export const AuthView = ({ onLoginSuccess }) => {
           )}
 
           {successMsg && (
-            <div className="bg-emerald-50 border border-emerald-200 text-[#0F5132] text-xs p-3.5 rounded-2xl flex items-start space-x-2.5 animate-in fade-in">
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="bg-blue-50 border border-blue-200 text-[#1e3a8a] text-xs p-3.5 rounded-2xl flex items-start space-x-2.5 animate-in fade-in">
+              <CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
               <div className="flex-1 font-bold">{successMsg}</div>
             </div>
           )}
@@ -324,20 +324,20 @@ export const AuthView = ({ onLoginSuccess }) => {
             <div className="space-y-6">
               
               {/* METODE 1: FAST SCAN OCR BUTTON (LANGSUNG LOGIN TANPA PASSWORD) */}
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-4 sm:p-5 rounded-2xl border-2 border-emerald-300 shadow-xs relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/60 p-4 sm:p-5 rounded-2xl border-2 border-blue-300 shadow-xs relative overflow-hidden">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <span className="inline-block bg-[#0F5132] text-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">
+                    <span className="inline-block bg-[#1e3a8a] text-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">
                       Metode 1: Rekomendasi Cepat
                     </span>
-                    <h4 className="text-sm font-black text-[#0F5132]">
+                    <h4 className="text-sm font-black text-[#1e3a8a]">
                       Scan Kartu Identitas (OCR) Tanpa Password
                     </h4>
-                    <p className="text-[11px] text-emerald-800 mt-0.5">
+                    <p className="text-[11px] text-blue-800 mt-0.5">
                       Foto KTP atau ID Card karyawan Anda di HP &rarr; NIK dicocokkan otomatis &rarr; langsung masuk sesuai role pekerjaan Anda!
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-[#0F5132] text-amber-400 flex items-center justify-center shrink-0 shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-[#1e3a8a] text-amber-400 flex items-center justify-center shrink-0 shadow-md">
                     <ScanLine className="w-6 h-6 animate-pulse" />
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     cameraInputRef.current?.click();
                   }}
                   disabled={loading || ocrProcessing}
-                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 disabled:opacity-50"
+                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 disabled:opacity-50"
                 >
                   <Camera className="w-5 h-5 text-amber-400" />
                   <span>Buka Kamera HP (Foto & Langsung Masuk)</span>
@@ -377,7 +377,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                       value={loginNik}
                       onChange={(e) => setLoginNik(e.target.value)}
                       placeholder="Masukkan NIK Anda"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] focus:ring-1 focus:ring-[#0F5132] outline-none transition"
+                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none transition"
                       required
                     />
                   </div>
@@ -399,7 +399,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="Masukkan password Anda"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] focus:ring-1 focus:ring-[#0F5132] outline-none transition"
+                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none transition"
                       required
                     />
                   </div>
@@ -408,7 +408,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>{loading ? 'Memverifikasi...' : 'Masuk Sekarang'}</span>
@@ -417,7 +417,7 @@ export const AuthView = ({ onLoginSuccess }) => {
 
               {/* Catatan Privasi & Keamanan Hak Akses */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-[11px] text-slate-600 flex items-start space-x-2">
-                <ShieldAlert className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <ShieldAlert className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
                 <p>
                   <strong>Batasan Hak Akses:</strong> Setiap akun terikat pada 1 role operasional (Operator Alat Berat hanya membuka lembar HE, Driver Dump Truck hanya membuka lembar DT, dan Admin membuka Dashboard).
                 </p>
@@ -432,12 +432,12 @@ export const AuthView = ({ onLoginSuccess }) => {
           {activeTab === 'register' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-xs text-emerald-950 space-y-2">
-                <div className="font-bold flex items-center space-x-1.5 text-[#0F5132]">
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-950 space-y-2">
+                <div className="font-bold flex items-center space-x-1.5 text-[#1e3a8a]">
                   <Sparkles className="w-4 h-4 text-amber-500" />
                   <span>Validasi Otomatis via OCR Tesseract:</span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-emerald-900">
+                <p className="text-[11px] leading-relaxed text-blue-900">
                   Gunakan kamera HP untuk memfoto KTP / ID Card karyawan. Sistem mengekstrak NIK dan Nama Anda secara otomatis. Data langsung terdaftar resmi di sistem Admin PT. LAZ COAL MANDIRI.
                 </p>
                 
@@ -448,7 +448,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     cameraInputRef.current?.click();
                   }}
                   disabled={ocrProcessing}
-                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] active:scale-98 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition cursor-pointer"
+                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition cursor-pointer"
                 >
                   <Camera className="w-4 h-4 text-amber-400" />
                   <span>Buka Kamera HP Foto KTP / Mine Permit (Isi Otomatis)</span>
@@ -467,7 +467,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     value={regNik}
                     onChange={(e) => setRegNik(e.target.value)}
                     placeholder="16 digit NIK atau kode identitas"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] focus:ring-1 focus:ring-[#0F5132] outline-none"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none"
                     required
                   />
                 </div>
@@ -488,7 +488,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Nama lengkap sesuai KTP / ID Card"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] focus:ring-1 focus:ring-[#0F5132] outline-none"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none"
                     required
                   />
                 </div>
@@ -505,7 +505,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     onClick={() => setRegJabatan('Operator Alat Berat')}
                     className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between overflow-hidden cursor-pointer ${
                       regJabatan === 'Operator Alat Berat'
-                        ? 'bg-emerald-50 border-[#0F5132] ring-2 ring-[#0F5132] shadow-sm'
+                        ? 'bg-blue-50 border-[#1e3a8a] ring-2 ring-[#1e3a8a] shadow-sm'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
@@ -513,7 +513,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                       <img src="/excavator-mining.webp" alt="Operator Alat Berat" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex items-center space-x-1.5">
-                      <HardHat className="w-4 h-4 text-[#0F5132] shrink-0" />
+                      <HardHat className="w-4 h-4 text-[#1e3a8a] shrink-0" />
                       <span className="text-xs font-black text-slate-900 leading-tight">Operator Alat Berat</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-0.5">Excavator / Bulldozer</span>
@@ -555,7 +555,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
                     placeholder="Contoh: 081234567890"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                   />
                 </div>
               </div>
@@ -573,7 +573,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       placeholder="Password baru"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                       required
                     />
                   </div>
@@ -590,7 +590,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                       value={regConfirmPassword}
                       onChange={(e) => setRegConfirmPassword(e.target.value)}
                       placeholder="Ulangi password"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                       required
                     />
                   </div>
@@ -601,7 +601,7 @@ export const AuthView = ({ onLoginSuccess }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-bold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
               >
                 <UserPlus className="w-4 h-4 text-amber-400" />
                 <span>{loading ? 'Mendaftarkan Akun...' : 'Daftar Akun Saya Sekarang'}</span>
@@ -620,12 +620,12 @@ export const AuthView = ({ onLoginSuccess }) => {
       {registeredUserConfirmation && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 text-[#0F5132] flex items-center justify-center mx-auto shadow-inner">
-              <CheckCircle className="w-8 h-8 text-emerald-600" />
+            <div className="w-14 h-14 rounded-full bg-blue-100 text-[#1e3a8a] flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle className="w-8 h-8 text-blue-600" />
             </div>
 
             <div className="text-center space-y-1">
-              <span className="bg-emerald-100 text-[#0F5132] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+              <span className="bg-blue-100 text-[#1e3a8a] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
                 Registrasi Mandiri Berhasil
               </span>
               <h3 className="text-lg font-black text-slate-900">
@@ -648,7 +648,7 @@ export const AuthView = ({ onLoginSuccess }) => {
               </div>
               <div className="flex justify-between border-b border-slate-200 pb-1.5">
                 <span className="text-slate-500">Jabatan & Role:</span>
-                <span className="font-bold text-[#0F5132] flex items-center space-x-1">
+                <span className="font-bold text-[#1e3a8a] flex items-center space-x-1">
                   {registeredUserConfirmation.jabatan.includes('Dump Truck') ? <Truck className="w-3.5 h-3.5 text-amber-500" /> : <HardHat className="w-3.5 h-3.5 text-amber-500" />}
                   <span>{registeredUserConfirmation.jabatan}</span>
                 </span>
@@ -661,13 +661,13 @@ export const AuthView = ({ onLoginSuccess }) => {
               )}
               <div className="flex justify-between pt-0.5">
                 <span className="text-slate-500">Status Data Admin:</span>
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                   ✓ Langsung Terdata di Admin
                 </span>
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[11px] text-blue-950">
               <strong>Batasan Hak Akses:</strong> Akun Anda secara otomatis hanya berhak membuka <strong>Time Sheet {registeredUserConfirmation.jabatan}</strong> demi ketertiban data site.
             </div>
 
@@ -678,7 +678,7 @@ export const AuthView = ({ onLoginSuccess }) => {
                 setRegisteredUserConfirmation(null);
                 onLoginSuccess(user);
               }}
-              className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>Lanjut Buka Lembar Kerja</span>
               <ArrowRight className="w-4 h-4 text-amber-400" />
@@ -701,8 +701,8 @@ export const AuthView = ({ onLoginSuccess }) => {
       {ocrProcessing && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-200">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto text-[#0F5132]">
-              <RefreshCw className="w-8 h-8 text-[#0F5132] animate-spin" />
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto text-[#1e3a8a]">
+              <RefreshCw className="w-8 h-8 text-[#1e3a8a] animate-spin" />
             </div>
             <div>
               <h3 className="font-extrabold text-base text-slate-900">Membaca Kartu Identitas</h3>
@@ -710,11 +710,11 @@ export const AuthView = ({ onLoginSuccess }) => {
             </div>
             <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-[#0F5132] h-3 rounded-full transition-all duration-300 ease-out" 
+                className="bg-[#1e3a8a] h-3 rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${ocrProgress}%` }}
               />
             </div>
-            <span className="text-xs font-mono font-bold text-[#0F5132]">{ocrProgress}%</span>
+            <span className="text-xs font-mono font-bold text-[#1e3a8a]">{ocrProgress}%</span>
           </div>
         </div>
       )}

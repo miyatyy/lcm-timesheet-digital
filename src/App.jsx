@@ -56,7 +56,7 @@ export function App() {
   const isAdmin = currentUser?.role === 'admin' || currentUser?.jabatan?.includes('Admin');
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-emerald-100 selection:text-[#0F5132]">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-blue-100 selection:text-[#1e3a8a]">
       
       {/* Monthly Day 1 Alert Banner */}
       <MonthlyNotificationBanner />
@@ -100,7 +100,7 @@ export function App() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 space-y-1">
-          <p className="font-extrabold text-[#0F5132]">
+          <p className="font-extrabold text-[#1e3a8a]">
             LCM TimeSheet Digital • PT. LAZ COAL MANDIRI
           </p>
           <p className="text-[11px] text-slate-400">

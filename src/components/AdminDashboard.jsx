@@ -201,7 +201,7 @@ export const AdminDashboard = ({ currentUser }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
           <div className="text-white space-y-1.5">
             <div className="flex items-center space-x-2">
-              <span className="bg-[#0F5132] text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider border border-amber-400/40 shadow-xs">
+              <span className="bg-[#1e3a8a] text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider border border-amber-400/40 shadow-xs">
                 Role: Administrator Site
               </span>
               <span className="bg-white/20 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full backdrop-blur-xs">
@@ -211,7 +211,7 @@ export const AdminDashboard = ({ currentUser }) => {
             <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
               Dashboard Monitoring & Database HM Unit
             </h2>
-            <p className="text-xs text-emerald-100 font-medium max-w-lg">
+            <p className="text-xs text-blue-100 font-medium max-w-lg">
               Rekapitulasi Jam Kerja (HM) Alat Berat, Hauling Dump Truck, Ekspor Excel/Word/PDF, dan Manajemen Akun Karyawan
             </p>
           </div>
@@ -231,7 +231,7 @@ export const AdminDashboard = ({ currentUser }) => {
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
                 PT. LAZ COAL MANDIRI
               </h2>
-              <span className="bg-emerald-100 text-[#0F5132] text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+              <span className="bg-blue-100 text-[#1e3a8a] text-xs font-bold px-2 py-0.5 rounded-full border border-blue-300">
                 DATABASE HM UNIT
               </span>
             </div>
@@ -247,7 +247,7 @@ export const AdminDashboard = ({ currentUser }) => {
             onClick={() => setActiveTab('rekap')}
             className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'rekap'
-                ? 'bg-[#0F5132] text-white shadow-xs'
+                ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -259,7 +259,7 @@ export const AdminDashboard = ({ currentUser }) => {
             onClick={() => setActiveTab('karyawan')}
             className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'karyawan'
-                ? 'bg-[#0F5132] text-white shadow-xs'
+                ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -271,7 +271,7 @@ export const AdminDashboard = ({ currentUser }) => {
             onClick={() => setActiveTab('backup')}
             className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'backup'
-                ? 'bg-[#0F5132] text-white shadow-xs'
+                ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
             }`}
           >
@@ -284,7 +284,7 @@ export const AdminDashboard = ({ currentUser }) => {
       {/* KPI Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#0F5132] flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold">
             <HardHat className="w-5 h-5" />
           </div>
           <div>
@@ -309,7 +309,7 @@ export const AdminDashboard = ({ currentUser }) => {
           </div>
           <div>
             <span className="text-[11px] font-bold text-slate-500 block uppercase">Total Akumulasi HM</span>
-            <span className="text-lg font-black font-mono text-[#0F5132]">{totalHMAll.toFixed(1)} <span className="text-xs font-normal text-slate-500">Jam</span></span>
+            <span className="text-lg font-black font-mono text-[#1e3a8a]">{totalHMAll.toFixed(1)} <span className="text-xs font-normal text-slate-500">Jam</span></span>
           </div>
         </div>
 
@@ -386,16 +386,16 @@ export const AdminDashboard = ({ currentUser }) => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleExportExcel}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+                className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
                 title="Export seluruh tabel ke file Microsoft Excel (.xlsx)"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+                <FileSpreadsheet className="w-4 h-4 text-sky-300" />
                 <span>Export Excel (.xlsx)</span>
               </button>
 
               <button
                 onClick={handleExportWord}
-                className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
                 title="Export rekap dokumen ke Microsoft Word (.docx)"
               >
                 <FileText className="w-4 h-4 text-blue-200" />
@@ -407,14 +407,14 @@ export const AdminDashboard = ({ currentUser }) => {
 
           {/* TABEL DATABASE HM UNIT (FORMAT PER KOLOM) */}
           <div className="bg-white rounded-3xl shadow-card border border-slate-200/80 overflow-hidden">
-            <div className="px-5 py-3.5 bg-[#0F5132] text-white flex justify-between items-center">
+            <div className="px-5 py-3.5 bg-[#1e3a8a] text-white flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Table className="w-4 h-4 text-amber-400" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
                   DATABASE HM UNIT PT. LAZ COAL MANDIRI
                 </h3>
               </div>
-              <span className="text-[11px] text-emerald-200 font-mono">
+              <span className="text-[11px] text-blue-200 font-mono">
                 {hmUnitRows.length} Unit Tercatat
               </span>
             </div>
@@ -435,7 +435,7 @@ export const AdminDashboard = ({ currentUser }) => {
                     <th className="py-3 px-3 font-mono">No Unit</th>
                     <th className="py-3 px-3 text-right">HM Awal</th>
                     <th className="py-3 px-3 text-right">HM Akhir</th>
-                    <th className="py-3 px-3 text-right font-extrabold text-[#0F5132]">Total HM</th>
+                    <th className="py-3 px-3 text-right font-extrabold text-[#1e3a8a]">Total HM</th>
                     <th className="py-3 px-3 border-l border-slate-200">Operator 1</th>
                     <th className="py-3 px-3 text-right">HM Opt 1</th>
                     <th className="py-3 px-3 border-l border-slate-200">Operator 2</th>
@@ -457,10 +457,10 @@ export const AdminDashboard = ({ currentUser }) => {
                           <td className="py-2.5 px-3 font-semibold text-slate-800">{row.date}</td>
                           <td className="py-2.5 px-3">{row.shift}</td>
                           <td className="py-2.5 px-3 font-medium text-slate-700">{row.modelUnit}</td>
-                          <td className="py-2.5 px-3 font-mono font-extrabold text-[#0F5132]">{row.noUnit}</td>
+                          <td className="py-2.5 px-3 font-mono font-extrabold text-[#1e3a8a]">{row.noUnit}</td>
                           <td className="py-2.5 px-3 text-right font-mono">{row.hmAwal.toFixed(1)}</td>
                           <td className="py-2.5 px-3 text-right font-mono">{row.hmAkhir.toFixed(1)}</td>
-                          <td className="py-2.5 px-3 text-right font-mono font-black text-[#0F5132] bg-emerald-50/80">
+                          <td className="py-2.5 px-3 text-right font-mono font-black text-[#1e3a8a] bg-blue-50/80">
                             {row.totalHm.toFixed(2)}
                           </td>
                           <td className="py-2.5 px-3 border-l border-slate-200 font-semibold">{opt1.name}</td>
@@ -480,7 +480,7 @@ export const AdminDashboard = ({ currentUser }) => {
                                   printHEDailyPDF(row.rawItem);
                                 }
                               }}
-                              className="p-1.5 text-[#0F5132] hover:bg-emerald-100 rounded-lg transition"
+                              className="p-1.5 text-[#1e3a8a] hover:bg-blue-100 rounded-lg transition"
                               title="Cetak Lembar Time Sheet PDF Resmi"
                             >
                               <Printer className="w-4 h-4" />
@@ -533,8 +533,8 @@ export const AdminDashboard = ({ currentUser }) => {
           </div>
 
           {resetSuccess && (
-            <div className="bg-emerald-50 border border-emerald-300 text-[#0F5132] text-xs p-3.5 rounded-2xl flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="bg-blue-50 border border-blue-300 text-[#1e3a8a] text-xs p-3.5 rounded-2xl flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
               <span className="font-bold">{resetSuccess}</span>
             </div>
           )}
@@ -548,7 +548,7 @@ export const AdminDashboard = ({ currentUser }) => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs whitespace-nowrap min-w-[850px]">
-                <thead className="bg-[#0F5132] text-white">
+                <thead className="bg-[#1e3a8a] text-white">
                   <tr>
                     <th className="py-3 px-4 w-12 text-center">No</th>
                     <th className="py-3 px-4 font-mono">NIK Karyawan</th>
@@ -576,7 +576,7 @@ export const AdminDashboard = ({ currentUser }) => {
                           <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                             emp.jabatan.includes('Dump Truck')
                               ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                              : (emp.jabatan.includes('Admin') ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300')
+                              : (emp.jabatan.includes('Admin') ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300')
                           }`}>
                             {emp.jabatan.includes('Dump Truck') ? <Truck className="w-3 h-3 mr-0.5" /> : <HardHat className="w-3 h-3 mr-0.5" />}
                             <span>{emp.jabatan}</span>
@@ -594,7 +594,7 @@ export const AdminDashboard = ({ currentUser }) => {
                           {emp.created_at ? new Date(emp.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-'}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <span className="inline-flex items-center space-x-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-[10px] border border-emerald-200">
+                          <span className="inline-flex items-center space-x-1 text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full font-bold text-[10px] border border-blue-200">
                             <CheckCircle2 className="w-3 h-3" />
                             <span>Terdaftar Resmi</span>
                           </span>
@@ -602,7 +602,7 @@ export const AdminDashboard = ({ currentUser }) => {
                         <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => setSelectedEmp(emp)}
-                            className="bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-[#0F5132] font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 transition flex items-center space-x-1 mx-auto cursor-pointer"
+                            className="bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#1e3a8a] font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 transition flex items-center space-x-1 mx-auto cursor-pointer"
                             title="Reset password jika karyawan lupa password"
                           >
                             <KeyRound className="w-3.5 h-3.5 text-amber-500" />
@@ -626,7 +626,7 @@ export const AdminDashboard = ({ currentUser }) => {
         <div className="space-y-6">
           
           <div className="bg-white rounded-3xl p-6 shadow-card border border-slate-200/80 space-y-4">
-            <div className="flex items-center space-x-3 text-[#0F5132]">
+            <div className="flex items-center space-x-3 text-[#1e3a8a]">
               <RotateCcw className="w-6 h-6 text-amber-500" />
               <div>
                 <h3 className="font-extrabold text-base text-slate-900">
@@ -639,12 +639,12 @@ export const AdminDashboard = ({ currentUser }) => {
             </div>
 
             {/* Kotak Peringatan Perlindungan Akun Karyawan */}
-            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-xs text-emerald-950 space-y-2">
-              <div className="font-extrabold flex items-center space-x-1.5 text-[#0F5132] text-sm">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 text-xs text-blue-950 space-y-2">
+              <div className="font-extrabold flex items-center space-x-1.5 text-[#1e3a8a] text-sm">
+                <CheckCircle2 className="w-5 h-5 text-blue-600" />
                 <span>JAMINAN KEAMANAN: Akun Karyawan (Tabel employees) TIDAK AKAN PERNAH DIHAPUS</span>
               </div>
-              <p className="leading-relaxed text-emerald-900">
+              <p className="leading-relaxed text-blue-900">
                 Pembersihan berkala bulanan hanya menghapus transaksi laporan jam kerja bulan lalu (<code>he_timesheets</code> dan <code>dt_timesheets</code>) agar database Supabase selalu ringan dan tidak melampaui batas free tier. 
                 Seluruh <strong>200+ akun karyawan yang sudah terdaftar mandiri tetap tersimpan permanen</strong> dan dapat terus login menggunakan NIK masing-masing setiap bulan.
               </p>
@@ -654,11 +654,11 @@ export const AdminDashboard = ({ currentUser }) => {
             {resetFeedback && (
               <div className={`p-4 rounded-2xl text-xs flex items-start space-x-2.5 border ${
                 resetFeedback.success 
-                  ? 'bg-emerald-50 border-emerald-300 text-[#0F5132]' 
+                  ? 'bg-blue-50 border-blue-300 text-[#1e3a8a]' 
                   : 'bg-red-50 border-red-300 text-red-800'
               }`}>
                 {resetFeedback.success ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
                 ) : (
                   <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
                 )}
@@ -670,7 +670,7 @@ export const AdminDashboard = ({ currentUser }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
               
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                <span className="bg-[#0F5132] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                <span className="bg-[#1e3a8a] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
                   Otomatis (Server-Side)
                 </span>
                 <h4 className="font-bold text-xs text-slate-900">Jadwal PostgreSQL pg_cron</h4>
@@ -716,7 +716,7 @@ export const AdminDashboard = ({ currentUser }) => {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div className="flex items-center space-x-2 text-[#0F5132]">
+              <div className="flex items-center space-x-2 text-[#1e3a8a]">
                 <KeyRound className="w-5 h-5 text-amber-500" />
                 <h3 className="font-bold text-sm">Reset Password Karyawan</h3>
               </div>
@@ -744,7 +744,7 @@ export const AdminDashboard = ({ currentUser }) => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Ketik password baru untuk karyawan"
-                  className="w-full text-xs font-semibold px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#0F5132] outline-none"
+                  className="w-full text-xs font-semibold px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                   required
                 />
                 <span className="text-[10px] text-slate-500 mt-1 block">
@@ -762,7 +762,7 @@ export const AdminDashboard = ({ currentUser }) => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs font-bold px-4 py-2 rounded-xl transition"
+                  className="bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-bold px-4 py-2 rounded-xl transition"
                 >
                   Simpan Password Baru
                 </button>
@@ -789,7 +789,7 @@ export const AdminDashboard = ({ currentUser }) => {
               <p className="text-xs text-slate-600 leading-relaxed">
                 Sistem akan mengunduh <strong>1 file PDF Rekap Bulanan</strong>, lalu menghapus data lembar kerja bulan lalu agar database tetap ringan.
               </p>
-              <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-[11px] text-emerald-900 font-bold">
+              <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl text-[11px] text-blue-900 font-bold">
                 ✓ Akun seluruh karyawan TIDAK AKAN DIHAPUS.
               </div>
             </div>
@@ -806,7 +806,7 @@ export const AdminDashboard = ({ currentUser }) => {
                 type="button"
                 onClick={handleTriggerMonthlyReset}
                 disabled={resetLoading}
-                className="bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition"
+                className="bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition"
               >
                 {resetLoading ? 'Memproses...' : 'Ya, Unduh PDF & Bersihkan'}
               </button>

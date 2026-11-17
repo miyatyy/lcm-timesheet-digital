@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-lcm-dark: #0a3622;
-  --color-lcm-primary: #0F5132;
-  --color-lcm-light: #198754;
-  --color-lcm-subtle: #e8f5e9;
+  --color-lcm-dark: #0f172a;
+  --color-lcm-primary: #1e3a8a;
+  --color-lcm-light: #2563eb;
+  --color-lcm-subtle: #eff6ff;
   --color-lcm-surface: #F8FAFC;
   --color-lcm-border: #e2e8f0;
   --color-lcm-accent: #f59e0b;

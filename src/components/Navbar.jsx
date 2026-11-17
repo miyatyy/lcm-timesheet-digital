@@ -20,20 +20,20 @@ export const Navbar = ({
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-      {/* Top Emerald Brand Banner */}
-      <div className="bg-[#0F5132] text-white px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs flex justify-between items-center">
+      {/* Top Blue Brand Banner */}
+      <div className="bg-[#1e3a8a] text-white px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs flex justify-between items-center">
         <div className="flex items-center space-x-1.5 sm:space-x-2 truncate">
           <span className="font-extrabold tracking-wider uppercase">PT. LAZ COAL MANDIRI</span>
-          <span className="text-emerald-300">|</span>
-          <span className="text-emerald-100 hidden sm:inline">Site Arutmin Indonesia, Kintap</span>
-          <span className="text-emerald-100 sm:hidden truncate">Site Kintap</span>
+          <span className="text-blue-300">|</span>
+          <span className="text-blue-100 hidden sm:inline">Site Arutmin Indonesia, Kintap</span>
+          <span className="text-blue-100 sm:hidden truncate">Site Kintap</span>
         </div>
         
         {/* Status Sistem Operasional (Aman & Tidak Membuka Konfigurasi Database) */}
         <div className="flex items-center space-x-1.5 text-[10px] sm:text-[11px] shrink-0">
-          <div className="flex items-center space-x-1 sm:space-x-1.5 bg-emerald-900/60 px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-700/50 select-none">
-            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400"></span>
-            <span className="text-emerald-100 font-medium">
+          <div className="flex items-center space-x-1 sm:space-x-1.5 bg-blue-950/70 px-2 sm:px-2.5 py-0.5 rounded-full border border-blue-700/50 select-none">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-sky-400"></span>
+            <span className="text-blue-100 font-medium">
               Sistem Aktif
             </span>
           </div>
@@ -53,10 +53,10 @@ export const Navbar = ({
             />
             <div>
               <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <h1 className="text-sm sm:text-lg font-black text-[#0F5132] tracking-tight leading-tight">
+                <h1 className="text-sm sm:text-lg font-black text-[#1e3a8a] tracking-tight leading-tight">
                   LCM TimeSheet
                 </h1>
-                <span className="bg-emerald-100 text-[#0F5132] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded border border-emerald-200">
+                <span className="bg-blue-100 text-[#1e3a8a] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded border border-blue-200">
                   DIGITAL
                 </span>
               </div>
@@ -74,10 +74,10 @@ export const Navbar = ({
               
               {/* JIKA OPERATOR: HANYA MUNCUL TIME SHEET ALAT BERAT */}
               {isOperator && (
-                <div className="flex items-center space-x-2 bg-emerald-50 text-[#0F5132] px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
-                  <img src="/excavator-mining.webp" alt="Excavator" className="w-6 h-6 rounded-md object-cover border border-emerald-400 shadow-xs" />
+                <div className="flex items-center space-x-2 bg-blue-50 text-[#1e3a8a] px-3.5 py-1.5 rounded-xl border border-blue-300 shadow-xs">
+                  <img src="/excavator-mining.webp" alt="Excavator" className="w-6 h-6 rounded-md object-cover border border-blue-400 shadow-xs" />
                   <span className="text-xs font-black">Time Sheet Alat Berat (Role Terkunci)</span>
-                  <Lock className="w-3.5 h-3.5 text-emerald-600 ml-1" title="Akses dibatasi hanya untuk Operator Alat Berat" />
+                  <Lock className="w-3.5 h-3.5 text-blue-600 ml-1" title="Akses dibatasi hanya untuk Operator Alat Berat" />
                 </div>
               )}
 
@@ -92,10 +92,10 @@ export const Navbar = ({
 
               {/* JIKA ADMIN: HANYA DASHBOARD ADMIN (DIBATASI, TIDAK BISA BUKA FORM KERJA KARYAWAN) */}
               {isAdmin && (
-                <div className="flex items-center space-x-2 bg-emerald-900/10 text-[#0F5132] px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
+                <div className="flex items-center space-x-2 bg-blue-900/10 text-[#1e3a8a] px-3.5 py-1.5 rounded-xl border border-blue-300 shadow-xs">
                   <img src="/lcm-logo.png" alt="LCM Admin" className="w-6 h-6 rounded-full object-contain" />
                   <span className="text-xs font-black">Dashboard Monitoring Admin (Role Terkunci)</span>
-                  <Lock className="w-3.5 h-3.5 text-emerald-700 ml-1" title="Akses dibatasi hanya untuk Dashboard Admin" />
+                  <Lock className="w-3.5 h-3.5 text-blue-700 ml-1" title="Akses dibatasi hanya untuk Dashboard Admin" />
                 </div>
               )}
 
@@ -119,7 +119,7 @@ export const Navbar = ({
                 </div>
               </div>
 
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-[#0F5132] font-bold text-xs sm:text-sm shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-[#1e3a8a] font-bold text-xs sm:text-sm shrink-0">
                 {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
               </div>
 
@@ -136,7 +136,7 @@ export const Navbar = ({
           ) : (
             <div className="flex items-center space-x-1.5 sm:space-x-2">
               <span className="text-xs text-slate-500 hidden sm:inline">Belum masuk?</span>
-              <span className="inline-flex items-center text-[10px] sm:text-xs font-semibold text-[#0F5132] bg-emerald-50 px-2 sm:px-2.5 py-1 rounded-lg border border-emerald-200">
+              <span className="inline-flex items-center text-[10px] sm:text-xs font-semibold text-[#1e3a8a] bg-blue-50 px-2 sm:px-2.5 py-1 rounded-lg border border-blue-200">
                 <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
                 <span>Self-Reg Karyawan</span>
               </span>
@@ -150,7 +150,7 @@ export const Navbar = ({
       {currentUser && !isAdmin && (
         <div className="md:hidden flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-2 text-xs">
           <div className="flex items-center space-x-2 font-bold text-slate-800">
-            {isOperator ? <HardHat className="w-4 h-4 text-[#0F5132]" /> : <Truck className="w-4 h-4 text-amber-600" />}
+            {isOperator ? <HardHat className="w-4 h-4 text-[#1e3a8a]" /> : <Truck className="w-4 h-4 text-amber-600" />}
             <span>{currentUser.jabatan}</span>
           </div>
           <span className="text-[11px] text-slate-500 font-mono flex items-center space-x-1">
