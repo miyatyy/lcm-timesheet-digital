@@ -203,19 +203,48 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
   return (
     <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-6">
       
+      {/* Role Visual Banner: Driver Dump Truck (CAT 777E / Hino 500) */}
+      <div className="relative h-40 sm:h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
+        <img 
+          src="/dumptruck-cat777e.jpg" 
+          alt="Operasional Dump Truck Tambang Batubara PT. LAZ COAL MANDIRI" 
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
+          <div className="text-white space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <span className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+                Role: Driver Dump Truck
+              </span>
+              <span className="bg-emerald-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                Hauling & Ritase
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
+              Time Sheet Dump Truck & Ritase
+            </h2>
+            <p className="text-xs text-amber-100 font-medium max-w-md">
+              Pencatatan Jam Kerja (HM) & Ritase Hauling Tambang • PT. LAZ COAL MANDIRI (Site Arutmin Kintap)
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Title Card */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#0F5132] flex items-center justify-center text-amber-400 shadow-md">
-            <Truck className="w-7 h-7" />
-          </div>
+          <img 
+            src="/lcm-logo.png" 
+            alt="Logo LCM" 
+            className="w-12 h-12 rounded-full object-contain shadow-md border border-slate-200"
+          />
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                Time Sheet Dump Truck (DT)
+                Lembar Jam Kerja & Ritase Dump Truck
               </h2>
-              <span className="bg-emerald-100 text-[#0F5132] text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                Hauling & Ritase
+              <span className="bg-amber-100 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-300">
+                DT 145 / Hino 500
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">

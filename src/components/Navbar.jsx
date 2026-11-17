@@ -45,9 +45,11 @@ export const Navbar = ({
           
           {/* Logo & System Title */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0F5132] flex items-center justify-center text-white shadow-md shadow-emerald-900/20">
-              <HardHat className="w-6 h-6 text-amber-400" />
-            </div>
+            <img 
+              src="/lcm-logo.png" 
+              alt="Logo PT. LAZ COAL MANDIRI" 
+              className="w-11 h-11 object-contain rounded-full shadow-sm border border-slate-200"
+            />
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-lg font-extrabold text-[#0F5132] tracking-tight leading-tight">
@@ -71,8 +73,8 @@ export const Navbar = ({
               
               {/* JIKA OPERATOR: HANYA MUNCUL TIME SHEET ALAT BERAT */}
               {isOperator && (
-                <div className="flex items-center space-x-2 bg-emerald-50 text-[#0F5132] px-4 py-2 rounded-xl border border-emerald-300 shadow-xs">
-                  <HardHat className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center space-x-2 bg-emerald-50 text-[#0F5132] px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
+                  <img src="/excavator-mining.webp" alt="Excavator" className="w-6 h-6 rounded-md object-cover border border-emerald-400 shadow-xs" />
                   <span className="text-xs font-black">Time Sheet Alat Berat (Role Terkunci)</span>
                   <Lock className="w-3.5 h-3.5 text-emerald-600 ml-1" title="Akses dibatasi hanya untuk Operator Alat Berat" />
                 </div>
@@ -80,8 +82,8 @@ export const Navbar = ({
 
               {/* JIKA DRIVER: HANYA MUNCUL TIME SHEET DUMP TRUCK */}
               {isDriver && (
-                <div className="flex items-center space-x-2 bg-amber-50 text-amber-950 px-4 py-2 rounded-xl border border-amber-300 shadow-xs">
-                  <Truck className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center space-x-2 bg-amber-50 text-amber-950 px-3.5 py-1.5 rounded-xl border border-amber-300 shadow-xs">
+                  <img src="/dumptruck-cat777e.jpg" alt="Dump Truck" className="w-6 h-6 rounded-md object-cover border border-amber-400 shadow-xs" />
                   <span className="text-xs font-black">Time Sheet Dump Truck (Role Terkunci)</span>
                   <Lock className="w-3.5 h-3.5 text-amber-600 ml-1" title="Akses dibatasi hanya untuk Driver Dump Truck" />
                 </div>
@@ -89,10 +91,10 @@ export const Navbar = ({
 
               {/* JIKA ADMIN: HANYA DASHBOARD ADMIN (DIBATASI, TIDAK BISA BUKA FORM KERJA KARYAWAN) */}
               {isAdmin && (
-                <div className="flex items-center space-x-2 bg-purple-50 text-purple-950 px-4 py-2 rounded-xl border border-purple-300 shadow-xs">
-                  <ShieldCheck className="w-4 h-4 text-purple-700" />
+                <div className="flex items-center space-x-2 bg-emerald-900/10 text-[#0F5132] px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-xs">
+                  <img src="/lcm-logo.png" alt="LCM Admin" className="w-6 h-6 rounded-full object-contain" />
                   <span className="text-xs font-black">Dashboard Monitoring Admin (Role Terkunci)</span>
-                  <Lock className="w-3.5 h-3.5 text-purple-700 ml-1" title="Akses dibatasi hanya untuk Dashboard Admin" />
+                  <Lock className="w-3.5 h-3.5 text-emerald-700 ml-1" title="Akses dibatasi hanya untuk Dashboard Admin" />
                 </div>
               )}
 

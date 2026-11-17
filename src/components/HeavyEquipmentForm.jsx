@@ -191,19 +191,48 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
   return (
     <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-6">
       
+      {/* Role Visual Banner: Operator Alat Berat (Excavator / Bulldozer) */}
+      <div className="relative h-40 sm:h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
+        <img 
+          src="/excavator-mining.webp" 
+          alt="Operasional Alat Berat Tambang Batubara PT. LAZ COAL MANDIRI" 
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
+          <div className="text-white space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <span className="bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+                Role: Operator Alat Berat
+              </span>
+              <span className="bg-amber-400 text-slate-900 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                Excavator / Dozer
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
+              Time Sheet Heavy Equipment
+            </h2>
+            <p className="text-xs text-emerald-100 font-medium max-w-md">
+              Pencatatan Jam Kerja (HM) Excavator & Bulldozer • PT. LAZ COAL MANDIRI (Site Arutmin Kintap)
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Title Card */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#0F5132] flex items-center justify-center text-amber-400 shadow-md">
-            <HardHat className="w-7 h-7" />
-          </div>
+          <img 
+            src="/lcm-logo.png" 
+            alt="Logo LCM" 
+            className="w-12 h-12 rounded-full object-contain shadow-md border border-slate-200"
+          />
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                Time Sheet Alat Berat (Heavy Equipment)
+                Lembar Jam Kerja Alat Berat
               </h2>
               <span className="bg-emerald-100 text-[#0F5132] text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                Excavator / Dozer
+                DX530LC-7M / EX-623
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">

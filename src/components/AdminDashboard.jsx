@@ -191,23 +191,52 @@ export const AdminDashboard = ({ currentUser }) => {
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-6">
       
+      {/* Role Visual Banner: Admin Dashboard (Site Management & Fleet Overview) */}
+      <div className="relative h-40 sm:h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
+        <img 
+          src="/excavator-mining.webp" 
+          alt="Operasional Tambang PT. LAZ COAL MANDIRI" 
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
+          <div className="text-white space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <span className="bg-[#0F5132] text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider border border-amber-400/40 shadow-xs">
+                Role: Administrator Site
+              </span>
+              <span className="bg-white/20 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full backdrop-blur-xs">
+                Site Arutmin Kintap
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
+              Dashboard Monitoring & Database HM Unit
+            </h2>
+            <p className="text-xs text-emerald-100 font-medium max-w-lg">
+              Rekapitulasi Jam Kerja (HM) Alat Berat, Hauling Dump Truck, Ekspor Excel/Word/PDF, dan Manajemen Akun Karyawan
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Top Banner Header */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#0F5132] flex items-center justify-center text-emerald-400 shadow-md">
-            <ShieldCheck className="w-7 h-7" />
-          </div>
+          <img 
+            src="/lcm-logo.png" 
+            alt="Logo LCM" 
+            className="w-12 h-12 rounded-full object-contain shadow-md border border-slate-200"
+          />
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                Dashboard Monitoring & Rekap Admin
+                PT. LAZ COAL MANDIRI
               </h2>
               <span className="bg-emerald-100 text-[#0F5132] text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-300">
                 DATABASE HM UNIT
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              PT. LAZ COAL MANDIRI • Site Arutmin Indonesia, Kintap (Kalimantan Selatan)
+              Site Arutmin Indonesia, Kintap (Kalimantan Selatan) • Pusat Kendali Data Operasional
             </p>
           </div>
         </div>

@@ -20,8 +20,6 @@ import {
 import confetti from 'canvas-confetti';
 import { employeeRepo } from '../lib/supabase';
 import { OcrScannerModal } from './OcrScannerModal';
-import heavyBannerSvg from '../assets/heavy-equipment-banner.svg';
-import lcmLogoSvg from '../assets/lcm-logo.svg';
 
 export const AuthView = ({ onLoginSuccess }) => {
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
@@ -194,27 +192,30 @@ export const AuthView = ({ onLoginSuccess }) => {
       <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
         
         {/* ============================================================================== */}
-        {/* BANNER ATAS DENGAN GAMBAR ALAT BERAT GELAP TRANSPARAN & LOGO PERUSAHAAN        */}
+        {/* BANNER ATAS DENGAN FOTO OPERASIONAL TAMBANG & LOGO RESMI LCM                   */}
         {/* ============================================================================== */}
-        <div className="relative h-48 sm:h-52 overflow-hidden bg-[#0a3622]">
+        <div className="relative h-52 sm:h-56 overflow-hidden bg-black">
           <img 
-            src={heavyBannerSvg} 
-            alt="Heavy Equipment Mining Background" 
-            className="w-full h-full object-cover opacity-85 select-none"
+            src="/excavator-mining.webp" 
+            alt="Operasional Tambang PT. LAZ COAL MANDIRI" 
+            className="w-full h-full object-cover opacity-60 scale-105 select-none"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a3622] via-[#0a3622]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a3622] via-black/40 to-black/60" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-            <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/60 mb-2 max-w-[90%]">
+            <div className="bg-white/95 backdrop-blur-md p-2 rounded-full shadow-2xl border-2 border-amber-400 mb-2 flex items-center justify-center">
               <img 
-                src={lcmLogoSvg} 
+                src="/lcm-logo.png" 
                 alt="PT. LAZ COAL MANDIRI" 
-                className="h-10 sm:h-12 w-auto object-contain"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-full"
               />
             </div>
-            <div className="inline-flex items-center space-x-1.5 bg-black/50 backdrop-blur-xs text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border border-amber-400/30">
-              <Sparkles className="w-3.5 h-3.5" />
+            <h2 className="text-white font-extrabold text-base sm:text-lg tracking-wide drop-shadow-md">
+              PT. LAZ COAL MANDIRI
+            </h2>
+            <div className="inline-flex items-center space-x-1.5 bg-black/60 backdrop-blur-xs text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border border-amber-400/40 mt-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Sistem TimeSheet Digital Resmi Site Arutmin Kintap</span>
             </div>
           </div>
@@ -451,37 +452,49 @@ export const AuthView = ({ onLoginSuccess }) => {
 
               {/* Pilihan Jabatan (Strict 1 Role) */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Pilih Jabatan Pekerjaan (Dibatasi 1 Role Kerja): <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setRegJabatan('Operator Alat Berat')}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition ${
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between overflow-hidden cursor-pointer ${
                       regJabatan === 'Operator Alat Berat'
-                        ? 'bg-[#0F5132] text-white border-[#0F5132] shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        ? 'bg-emerald-50 border-[#0F5132] ring-2 ring-[#0F5132] shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <HardHat className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Operator Alat Berat</span>
+                    <div className="h-20 w-full rounded-xl overflow-hidden mb-2 bg-slate-100">
+                      <img src="/excavator-mining.webp" alt="Operator Alat Berat" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <HardHat className="w-4 h-4 text-[#0F5132] shrink-0" />
+                      <span className="text-xs font-black text-slate-900 leading-tight">Operator Alat Berat</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-0.5">Excavator / Bulldozer</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setRegJabatan('Driver Dump Truck')}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition ${
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between overflow-hidden cursor-pointer ${
                       regJabatan === 'Driver Dump Truck'
-                        ? 'bg-[#0F5132] text-white border-[#0F5132] shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        ? 'bg-amber-50 border-amber-600 ring-2 ring-amber-600 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <Truck className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Driver Dump Truck</span>
+                    <div className="h-20 w-full rounded-xl overflow-hidden mb-2 bg-slate-100">
+                      <img src="/dumptruck-cat777e.jpg" alt="Driver Dump Truck" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <Truck className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span className="text-xs font-black text-slate-900 leading-tight">Driver Dump Truck</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-0.5">DT Hauling & Ritase</span>
                   </button>
                 </div>
-                <span className="text-[10px] text-slate-500 mt-1 block">
+                <span className="text-[10px] text-slate-500 mt-1.5 block">
                   * Akun hanya berhak mengakses lembar time sheet sesuai jabatan yang dipilih.
                 </span>
               </div>
