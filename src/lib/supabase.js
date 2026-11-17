@@ -275,17 +275,41 @@ export const employeeRepo = {
   },
 
   async findByNik(nik) {
+    if (!nik) return null;
     const cleanNik = String(nik).trim();
+    const normNik = cleanNik.toUpperCase().replace(/[\s\-_]/g, '');
+    const stripDotNik = normNik.replace(/\./g, '');
+
     if (isSupabaseConfigured()) {
       try {
+        // 1. Exact match
         const { data, error } = await supabase.from('employees').select('*').eq('nik', cleanNik).maybeSingle();
         if (!error && data) return data;
+
+        // 2. Case-insensitive match
+        const { data: dataIlike } = await supabase.from('employees').select('*').ilike('nik', cleanNik).maybeSingle();
+        if (dataIlike) return dataIlike;
+
+        // 3. Match normalized format (e.g. V.26141 vs v.26141 vs V26141)
+        const { data: allEmps } = await supabase.from('employees').select('*');
+        if (allEmps && allEmps.length > 0) {
+          const match = allEmps.find(emp => {
+            const eNorm = String(emp.nik || '').toUpperCase().replace(/[\s\-_]/g, '');
+            const eStrip = eNorm.replace(/\./g, '');
+            return eNorm === normNik || eStrip === stripDotNik;
+          });
+          if (match) return match;
+        }
       } catch (e) {
         console.warn('Supabase findByNik failed, fallback to local', e);
       }
     }
     const employees = getLocalStorage('lcm_employees', SEED_EMPLOYEES);
-    return employees.find(emp => emp.nik.toLowerCase() === cleanNik.toLowerCase()) || null;
+    return employees.find(emp => {
+      const eNorm = String(emp.nik || '').toUpperCase().replace(/[\s\-_]/g, '');
+      const eStrip = eNorm.replace(/\./g, '');
+      return eNorm === normNik || eStrip === stripDotNik || String(emp.nik).toLowerCase() === cleanNik.toLowerCase();
+    }) || null;
   },
 
   async register(empData) {

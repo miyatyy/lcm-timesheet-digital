@@ -229,11 +229,9 @@ export const AuthView = ({
               // Langsung login via NIK kartu
               await handleOcrFastLogin(result.nik);
             } else {
-              // Mode registrasi: langsung isikan NIK, Nama, dan No HP ke form
+              // Mode registrasi: KHUSUS NIK SAJA sesuai instruksi user
               setRegNik(result.nik);
-              if (result.name) setRegName(result.name);
-              if (result.phone) setRegPhone(result.phone);
-              setSuccessMsg(`Foto berhasil diproses! NIK: ${result.nik}${result.name ? ' (' + result.name + ')' : ''} terisi otomatis. Silakan tentukan jabatan & buat password.`);
+              setSuccessMsg(`Kartu berhasil dipindai! NIK: ${result.nik} berhasil terisi otomatis. Silakan lengkapi Nama, Jabatan, No. Telepon (jika ada), dan buat Password.`);
             }
           } else {
             setErrorMsg(
@@ -370,7 +368,7 @@ export const AuthView = ({
                       Scan Kartu Identitas (OCR) Tanpa Password
                     </h4>
                     <p className="text-[11px] text-blue-800 mt-0.5">
-                      Foto KTP atau ID Card karyawan Anda di HP &rarr; NIK dicocokkan otomatis &rarr; langsung masuk sesuai role pekerjaan Anda!
+                      Foto kartu Mine Permit / KTP di HP &rarr; Sistem membaca khusus NIK (misal: V.26141) &rarr; Langsung masuk sesuai role!
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-[#1e3a8a] text-amber-400 flex items-center justify-center shrink-0 shadow-md">
@@ -474,7 +472,7 @@ export const AuthView = ({
                   <span>Validasi Otomatis via OCR Tesseract:</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-blue-900">
-                  Gunakan kamera HP untuk memfoto KTP / ID Card karyawan. Sistem mengekstrak NIK dan Nama Anda secara otomatis. Data langsung terdaftar resmi di sistem Admin PT. LAZ COAL MANDIRI.
+                  Gunakan kamera HP untuk memfoto Mine Permit / KTP Anda. Sistem otomatis memindai <strong>khusus NIK Karyawan</strong> (seperti contoh: V.26141) agar pendaftaran cepat & tepat.
                 </p>
                 
                 <button
@@ -487,7 +485,7 @@ export const AuthView = ({
                   className="w-full bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition cursor-pointer"
                 >
                   <Camera className="w-4 h-4 text-amber-400" />
-                  <span>Buka Kamera HP Foto KTP / Mine Permit (Isi Otomatis)</span>
+                  <span>Buka Kamera HP (Pindai Khusus NIK Kartu)</span>
                 </button>
               </div>
 
