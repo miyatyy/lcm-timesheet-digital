@@ -21,17 +21,18 @@ export const Navbar = ({
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       {/* Top Emerald Brand Banner */}
-      <div className="bg-[#0F5132] text-white px-4 py-1.5 text-xs flex justify-between items-center">
-        <div className="flex items-center space-x-2 truncate">
-          <span className="font-bold tracking-wider uppercase">PT. LAZ COAL MANDIRI</span>
+      <div className="bg-[#0F5132] text-white px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs flex justify-between items-center">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 truncate">
+          <span className="font-extrabold tracking-wider uppercase">PT. LAZ COAL MANDIRI</span>
           <span className="text-emerald-300">|</span>
-          <span className="text-emerald-100 hidden sm:inline">Site Arutmin Indonesia, Kintap, Kalsel</span>
+          <span className="text-emerald-100 hidden sm:inline">Site Arutmin Indonesia, Kintap</span>
+          <span className="text-emerald-100 sm:hidden truncate">Site Kintap</span>
         </div>
         
         {/* Status Sistem Operasional (Aman & Tidak Membuka Konfigurasi Database) */}
-        <div className="flex items-center space-x-2 text-[11px]">
-          <div className="flex items-center space-x-1.5 bg-emerald-900/60 px-2.5 py-0.5 rounded-full border border-emerald-700/50 select-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <div className="flex items-center space-x-1.5 text-[10px] sm:text-[11px] shrink-0">
+          <div className="flex items-center space-x-1 sm:space-x-1.5 bg-emerald-900/60 px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-700/50 select-none">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400"></span>
             <span className="text-emerald-100 font-medium">
               Sistem Aktif
             </span>
@@ -40,26 +41,26 @@ export const Navbar = ({
       </div>
 
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           
           {/* Logo & System Title */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <img 
               src="/lcm-logo.png" 
               alt="Logo PT. LAZ COAL MANDIRI" 
-              className="w-11 h-11 object-contain rounded-full shadow-sm border border-slate-200"
+              className="w-9 h-9 sm:w-11 sm:h-11 object-contain rounded-full shadow-sm border border-slate-200 shrink-0"
             />
             <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-lg font-extrabold text-[#0F5132] tracking-tight leading-tight">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <h1 className="text-sm sm:text-lg font-black text-[#0F5132] tracking-tight leading-tight">
                   LCM TimeSheet
                 </h1>
-                <span className="bg-emerald-100 text-[#0F5132] text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-200">
+                <span className="bg-emerald-100 text-[#0F5132] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded border border-emerald-200">
                   DIGITAL
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate max-w-[170px] sm:max-w-none">
                 Pencatatan Jam Kerja & Ritase Operasional
               </p>
             </div>
@@ -103,7 +104,7 @@ export const Navbar = ({
 
           {/* User Profile & Logout */}
           {currentUser ? (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="hidden sm:block text-right">
                 <div className="text-xs font-bold text-slate-900 flex items-center justify-end space-x-1">
                   <span>{currentUser.name}</span>
@@ -118,25 +119,26 @@ export const Navbar = ({
                 </div>
               </div>
 
-              <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-[#0F5132] font-bold text-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-[#0F5132] font-bold text-xs sm:text-sm shrink-0">
                 {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
               </div>
 
               <button
                 onClick={onLogout}
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition cursor-pointer shadow-2xs"
+                className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 rounded-xl border border-red-200 transition cursor-pointer shadow-2xs touch-manipulation"
                 title="Keluar dari akun Anda sekarang"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Keluar (Logout)</span>
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 shrink-0" />
+                <span className="hidden sm:inline">Keluar (Logout)</span>
+                <span className="sm:hidden font-bold">Keluar</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
               <span className="text-xs text-slate-500 hidden sm:inline">Belum masuk?</span>
-              <span className="inline-flex items-center text-xs font-semibold text-[#0F5132] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                <UserCheck className="w-3.5 h-3.5 mr-1" />
-                Self-Registration Karyawan
+              <span className="inline-flex items-center text-[10px] sm:text-xs font-semibold text-[#0F5132] bg-emerald-50 px-2 sm:px-2.5 py-1 rounded-lg border border-emerald-200">
+                <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
+                <span>Self-Reg Karyawan</span>
               </span>
             </div>
           )}

@@ -512,8 +512,14 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full text-left text-xs">
+          {/* Mobile Swipe Hint */}
+          <div className="sm:hidden flex items-center justify-between text-[11px] text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+            <span className="font-semibold flex items-center">👉 Geser tabel ke samping untuk mengisi kolom</span>
+            <span className="font-mono text-[10px] bg-emerald-200/70 px-1.5 py-0.5 rounded">12 Jam</span>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-2xs">
+            <table className="w-full text-left text-xs min-w-[650px]">
               <thead className="bg-[#0F5132] text-white">
                 <tr>
                   <th className="py-2.5 px-3 font-bold w-12 text-center">No</th>

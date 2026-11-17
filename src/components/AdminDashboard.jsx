@@ -419,8 +419,14 @@ export const AdminDashboard = ({ currentUser }) => {
               </span>
             </div>
 
+            {/* Mobile Scroll Hint */}
+            <div className="lg:hidden flex items-center justify-between text-[11px] text-slate-600 bg-slate-100 px-3 py-1.5 border-b border-slate-200">
+              <span className="font-semibold">👉 Geser tabel ke samping untuk melihat seluruh operator & HM</span>
+              <span className="font-mono text-[10px] text-slate-500">14 Kolom</span>
+            </div>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs whitespace-nowrap">
+              <table className="w-full text-left text-xs whitespace-nowrap min-w-[950px]">
                 <thead className="bg-slate-100 text-slate-800 border-b border-slate-200 font-bold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="py-3 px-3">Date</th>
@@ -534,8 +540,14 @@ export const AdminDashboard = ({ currentUser }) => {
           )}
 
           <div className="bg-white rounded-3xl shadow-card border border-slate-200/80 overflow-hidden">
+            {/* Mobile Scroll Hint */}
+            <div className="md:hidden flex items-center justify-between text-[11px] text-slate-600 bg-slate-100 px-3 py-1.5 border-b border-slate-200">
+              <span className="font-semibold">👉 Geser ke samping untuk melihat detail karyawan</span>
+              <span className="font-mono text-[10px] text-slate-500">{employees.length} Orang</span>
+            </div>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs whitespace-nowrap">
+              <table className="w-full text-left text-xs whitespace-nowrap min-w-[850px]">
                 <thead className="bg-[#0F5132] text-white">
                   <tr>
                     <th className="py-3 px-4 w-12 text-center">No</th>
