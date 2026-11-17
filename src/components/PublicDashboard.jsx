@@ -324,33 +324,89 @@ export const PublicDashboard = ({ onNavigateToAuth }) => {
             </div>
           </div>
 
-          {/* Photo 3: Mining Operations & Pit Area */}
-          <div className="group bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-card hover:shadow-card-hover transition flex flex-col">
-            <div className="relative h-56 sm:h-64 overflow-hidden bg-slate-900">
-              <img 
-                src="/mining-operations.jpg" 
-                alt="Mining Operations PT LAZ COAL MANDIRI Site Kintap" 
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500 select-none"
-              />
-              <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
-                Good Mining Practices
+          {/* Card 3: Profil Perusahaan Resmi LinkedIn PT. LAZ COAL MANDIRI */}
+          <div className="group bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl overflow-hidden border border-blue-800/60 shadow-card hover:shadow-card-hover transition flex flex-col text-white">
+            {/* Top LinkedIn Header */}
+            <div className="relative p-4 sm:p-5 bg-gradient-to-r from-[#0a66c2] via-[#004182] to-[#1e3a8a] border-b border-blue-700/50 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-white p-1.5 shadow-md flex items-center justify-center shrink-0 border border-blue-200">
+                  <img 
+                    src="/lcm-logo.png" 
+                    alt="Logo PT. LAZ COAL MANDIRI" 
+                    className="w-full h-full object-contain rounded-full"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="font-extrabold text-sm sm:text-base text-white leading-tight">
+                      PT. LAZ COAL MANDIRI
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-sky-300"></span>
+                  </div>
+                  <span className="text-[11px] text-blue-100 font-medium block">
+                    @lazcoal • Profil Resmi LinkedIn
+                  </span>
+                </div>
               </div>
-              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md">
-                Site Arutmin Kintap
-              </div>
+              <a 
+                href="https://id.linkedin.com/company/lazcoal"
+                target="_blank"
+                rel="noreferrer"
+                className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition cursor-pointer"
+                title="Buka Halaman LinkedIn PT. LAZ COAL MANDIRI"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
-            <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-2">
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Operasional Jalur Hauling & Area Penambangan
-                </h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Kombinasi armada pengupasan tanah, pemeliharaan jalur hauling, serta kepatuhan keselamatan kerja tambang (K3LH) berstandar nasional.
-                </p>
+
+            {/* LinkedIn Body Data */}
+            <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="bg-sky-400/20 text-sky-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-sky-400/30">
+                    Mining & Metals Contractor
+                  </span>
+                  <span className="bg-amber-400/20 text-amber-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                    Site Arutmin Kintap
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base text-white">
+                    Kontraktor Jasa Pertambangan Batubara
+                  </h3>
+                  <p className="text-xs text-blue-100/80 mt-1 leading-relaxed">
+                    Mitra kerja strategis PT. Arutmin Indonesia sejak 2013 di Kintap, Tanah Laut, Kalimantan Selatan.
+                  </p>
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-200 pt-1">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                    <span><strong>Layanan Utama:</strong> Pengupasan lapisan tanah (OB), <em>coal getting</em>, & pengelolaan armada alat berat.</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Standar K3LH Tambang:</strong> Rutin P5M (Pengawasan 5 Menit) & Safety Talk dengan komitmen <em>Zero Accident</em>.</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span><strong>SDM Lokal:</strong> Fresh Graduate Development Program (FGDP) & uji coba armada dump truck hybrid.</span>
+                  </div>
+                </div>
               </div>
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-emerald-800">
-                <span>Zero Accident Commitment</span>
-                <span className="text-slate-400 font-mono">K3LH Terpadu</span>
+
+              <div className="pt-3 border-t border-white/10">
+                <a 
+                  href="https://id.linkedin.com/company/lazcoal"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full bg-[#0a66c2] hover:bg-[#004182] active:bg-[#003366] text-white text-xs font-extrabold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer shadow-md"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Kunjungi Profil Perusahaan di LinkedIn</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             </div>
           </div>
@@ -478,23 +534,23 @@ export const PublicDashboard = ({ onNavigateToAuth }) => {
               <span>Komitmen Kinerja Penambangan Batubara</span>
             </h3>
             <p>
-              Berdiri sejak tahun 2013, PT. LAZ Coal Mandiri telah dipercaya menjadi mitra strategis utama PT. Arutmin Indonesia di Site Kintap, Tanah Laut, Kalimantan Selatan. Fokus utama kami adalah pencapaian target produksi batubara secara efisien dengan ketersediaan mekanis unit yang tinggi.
+              Berdiri sejak tahun 2013 (berawal dari CV Bumi Kencana, lalu CV Laz Coal, hingga resmi bertransformasi menjadi <strong>PT. LAZ Coal Mandiri</strong> pada 2016), perusahaan dipercaya menjadi mitra strategis utama PT. Arutmin Indonesia di Site Kintap, Tanah Laut, Kalimantan Selatan.
             </p>
             <p>
-              Didukung oleh armada alat berat modern seperti excavator kelas 50 hingga 200 ton dan dump truck raksasa CAT 777E, operasional kami dikelola dengan standar Good Mining Practice yang ketat.
+              Layanan terpadu mencakup pengupasan tanah penutup (<em>overburden removal</em>), pemuatan batubara (<em>coal getting & loading</em>), serta manajemen armada alat berat berkapasitas besar (CAT 777E, Komatsu PC2000, Doosan DX530LC, CAT 390D) yang beroperasi 24 jam dengan ketersediaan mekanis unit tinggi.
             </p>
           </div>
 
           <div className="space-y-3">
             <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
               <Zap className="w-4 h-4 text-amber-600" />
-              <span>Inovasi Lingkungan & Tenaga Kerja Lokal</span>
+              <span>Standar K3LH & Tanggung Jawab Sosial</span>
             </h3>
             <p>
-              Kami aktif melaksanakan program Fresh Graduate Development Program (FGDP) guna mendidik dan menyerap pemuda-pemudi lokal Kintap menjadi operator dan mekanik alat berat profesional dan berlisensi.
+              Keselamatan kerja tambang menjadi prioritas mutlak melalui briefing harian <strong>P5M (Pengawasan 5 Menit)</strong>, <strong>Safety Talk</strong> berkala, dan kepatuhan APD guna mempertahankan target <em>Zero Accident</em> di seluruh pit dan jalur hauling.
             </p>
             <p>
-              Selain itu, komitmen terhadap lingkungan hidup diwujudkan melalui reklamasi progresif pascatambang dan penerapan uji coba armada dump truck hybrid hemat bahan bakar untuk menurunkan jejak emisi karbon di area tambang.
+              Kami berkomitmen memberdayakan masyarakat sekitar lewat <strong>Fresh Graduate Development Program (FGDP)</strong> bagi pemuda lokal Kintap, serta memelopori operasional ramah lingkungan melalui uji coba armada <em>hybrid dump truck</em> hemat energi.
             </p>
           </div>
         </div>
