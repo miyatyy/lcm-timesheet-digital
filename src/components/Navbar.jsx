@@ -5,14 +5,20 @@ import {
   ShieldCheck, 
   LogOut, 
   Lock,
-  UserCheck
+  UserCheck,
+  Building2,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
 
 export const Navbar = ({ 
   currentUser, 
   onLogout, 
   activeTab, 
-  setActiveTab
+  setActiveTab,
+  authViewMode = 'dashboard',
+  onNavigateToAuth,
+  onBackToDashboard
 }) => {
   const isOperator = currentUser?.role === 'operator' || currentUser?.jabatan?.includes('Alat Berat');
   const isDriver = currentUser?.role === 'driver' || currentUser?.jabatan?.includes('Dump Truck');
@@ -45,7 +51,11 @@ export const Navbar = ({
         <div className="flex justify-between items-center h-14 sm:h-16">
           
           {/* Logo & System Title */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div 
+            onClick={!currentUser && onBackToDashboard ? onBackToDashboard : undefined}
+            className={`flex items-center space-x-2 sm:space-x-3 select-none ${!currentUser ? 'cursor-pointer hover:opacity-90 transition' : ''}`}
+            title={!currentUser ? 'Klik untuk kembali ke Beranda & Profil PT. LCM' : undefined}
+          >
             <img 
               src="/lcm-logo.png" 
               alt="Logo PT. LAZ COAL MANDIRI" 
@@ -135,11 +145,41 @@ export const Navbar = ({
             </div>
           ) : (
             <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <span className="text-xs text-slate-500 hidden sm:inline">Belum masuk?</span>
-              <span className="inline-flex items-center text-[10px] sm:text-xs font-semibold text-[#1e3a8a] bg-blue-50 px-2 sm:px-2.5 py-1 rounded-lg border border-blue-200">
-                <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
-                <span>Self-Reg Karyawan</span>
-              </span>
+              <button
+                type="button"
+                onClick={onBackToDashboard}
+                className={`flex items-center space-x-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition cursor-pointer active:scale-98 ${
+                  authViewMode === 'dashboard'
+                    ? 'bg-blue-100 text-[#1e3a8a] border border-blue-300'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1e3a8a]" />
+                <span className="hidden sm:inline">Beranda Profil</span>
+                <span className="sm:hidden">Profil</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigateToAuth && onNavigateToAuth('login')}
+                className={`flex items-center space-x-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition cursor-pointer shadow-xs active:scale-98 ${
+                  authViewMode === 'auth'
+                    ? 'bg-[#1e3a8a] text-white border border-blue-900'
+                    : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]'
+                }`}
+              >
+                <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
+                <span>Masuk</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigateToAuth && onNavigateToAuth('register')}
+                className="hidden md:inline-flex items-center space-x-1.5 text-xs font-bold text-slate-700 bg-amber-400 hover:bg-amber-500 text-slate-950 px-3 py-1.5 rounded-xl transition cursor-pointer shadow-xs active:scale-98"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-slate-950" />
+                <span>Registrasi</span>
+              </button>
             </div>
           )}
 

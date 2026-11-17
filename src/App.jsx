@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { PublicDashboard } from './components/PublicDashboard';
 import { AuthView } from './components/AuthView';
 import { HeavyEquipmentForm } from './components/HeavyEquipmentForm';
 import { DumpTruckForm } from './components/DumpTruckForm';
@@ -17,6 +18,9 @@ export function App() {
   });
 
   const [activeTab, setActiveTab] = useState('alat-berat'); // 'alat-berat' | 'dump-truck' | 'admin'
+  const [authViewMode, setAuthViewMode] = useState('dashboard'); // 'dashboard' | 'auth'
+  const [authTab, setAuthTab] = useState('login'); // 'login' | 'register'
+  const [autoTriggerOcr, setAutoTriggerOcr] = useState(false);
 
   // =========================================================================
   // ENFORCE STRICT SINGLE ROLE ACCESS RESTRICTION
@@ -38,6 +42,26 @@ export function App() {
     }
   }, [currentUser]);
 
+  // Navigasi dari Dashboard ke Auth Portal
+  const handleNavigateToAuth = (tab = 'login') => {
+    if (tab === 'ocr') {
+      setAuthTab('login');
+      setAutoTriggerOcr(true);
+    } else {
+      setAuthTab(tab);
+      setAutoTriggerOcr(false);
+    }
+    setAuthViewMode('auth');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Kembali ke Dashboard Beranda
+  const handleBackToDashboard = () => {
+    setAuthViewMode('dashboard');
+    setAutoTriggerOcr(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Handle Login
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
@@ -48,6 +72,8 @@ export function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('lcm_logged_user');
+    setAuthViewMode('dashboard');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Cek otorisasi tampilan
@@ -67,14 +93,28 @@ export function App() {
         onLogout={handleLogout}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        authViewMode={authViewMode}
+        onNavigateToAuth={handleNavigateToAuth}
+        onBackToDashboard={handleBackToDashboard}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 pb-12">
         {!currentUser ? (
-          <AuthView 
-            onLoginSuccess={handleLoginSuccess} 
-          />
+          <div>
+            {authViewMode === 'dashboard' ? (
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+                <PublicDashboard onNavigateToAuth={handleNavigateToAuth} />
+              </div>
+            ) : (
+              <AuthView 
+                onLoginSuccess={handleLoginSuccess}
+                initialTab={authTab}
+                initialTriggerOcr={autoTriggerOcr}
+                onBackToDashboard={handleBackToDashboard}
+              />
+            )}
+          </div>
         ) : (
           <div>
             {/* JIKA OPERATOR: HANYA FORM ALAT BERAT */}

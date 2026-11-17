@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ScanLine, 
   KeyRound, 
@@ -15,6 +15,7 @@ import {
   Truck,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   ShieldAlert,
   Camera,
   RefreshCw
@@ -23,11 +24,34 @@ import confetti from 'canvas-confetti';
 import { employeeRepo } from '../lib/supabase';
 import { runClientOCR } from '../lib/ocr';
 
-export const AuthView = ({ onLoginSuccess }) => {
-  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
+export const AuthView = ({ 
+  onLoginSuccess, 
+  initialTab = 'login', 
+  initialTriggerOcr = false, 
+  onBackToDashboard 
+}) => {
+  const [activeTab, setActiveTab] = useState(initialTab === 'register' ? 'register' : 'login');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Sinkronisasi tab jika prop berubah
+  useEffect(() => {
+    if (initialTab === 'register' || initialTab === 'login') {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Otomatis buka kamera jika dipicu dari tombol OCR di dashboard
+  useEffect(() => {
+    if (initialTriggerOcr && cameraInputRef.current) {
+      const timer = setTimeout(() => {
+        setOcrMode('login');
+        cameraInputRef.current?.click();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [initialTriggerOcr]);
 
   // Direct Camera OCR State (Menggunakan Kamera Bawaan HP Langsung)
   const [ocrProcessing, setOcrProcessing] = useState(false);
@@ -231,8 +255,20 @@ export const AuthView = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-3 sm:p-6 bg-[#F8FAFC]">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-3 sm:p-6 bg-[#F8FAFC]">
+      <div className="w-full max-w-xl space-y-3">
+        {onBackToDashboard && (
+          <button
+            type="button"
+            onClick={onBackToDashboard}
+            className="inline-flex items-center space-x-2 text-xs font-bold text-[#1e3a8a] hover:text-blue-700 bg-white hover:bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-200 shadow-2xs transition cursor-pointer active:scale-98"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#1e3a8a]" />
+            <span>← Kembali ke Beranda Profil PT. LCM</span>
+          </button>
+        )}
+
+        <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
         
         {/* ============================================================================== */}
         {/* BANNER ATAS DENGAN FOTO OPERASIONAL TAMBANG & LOGO RESMI LCM                   */}
@@ -686,6 +722,7 @@ export const AuthView = ({ onLoginSuccess }) => {
           </div>
         </div>
       )}
+      </div>
 
       {/* Input Kamera Default Bawaan HP (capture="environment") */}
       <input
