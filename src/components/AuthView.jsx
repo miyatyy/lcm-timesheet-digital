@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ScanLine, 
   KeyRound, 
@@ -15,11 +15,13 @@ import {
   Truck,
   Sparkles,
   ArrowRight,
-  ShieldAlert
+  ShieldAlert,
+  Camera,
+  RefreshCw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { employeeRepo } from '../lib/supabase';
-import { OcrScannerModal } from './OcrScannerModal';
+import { runClientOCR } from '../lib/ocr';
 
 export const AuthView = ({ onLoginSuccess }) => {
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
@@ -27,9 +29,12 @@ export const AuthView = ({ onLoginSuccess }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // OCR Modal State
-  const [isOcrOpen, setIsOcrOpen] = useState(false);
+  // Direct Camera OCR State (Menggunakan Kamera Bawaan HP Langsung)
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrStatusText, setOcrStatusText] = useState('');
   const [ocrMode, setOcrMode] = useState('login'); // 'login' | 'register'
+  const cameraInputRef = useRef(null);
 
   // Manual Login Form State
   const [loginNik, setLoginNik] = useState('');
@@ -171,20 +176,57 @@ export const AuthView = ({ onLoginSuccess }) => {
     }
   };
 
-  // Tangani callback scan OCR
-  const handleScanComplete = (data) => {
-    if (ocrMode === 'login') {
-      if (data.nik) {
-        handleOcrFastLogin(data.nik);
-      } else {
-        setErrorMsg('NIK tidak terdeteksi dari hasil scan. Silakan coba kembali atau gunakan login manual.');
-      }
-    } else {
-      // Mode registrasi
-      if (data.nik) setRegNik(data.nik);
-      if (data.name) setRegName(data.name);
-      if (data.phone) setRegPhone(data.phone);
-      setSuccessMsg('Data kartu identitas berhasil diekstrak! NIK & No. HP terisi otomatis. Silakan lengkapi jabatan dan buat password.');
+  // 4. PEMOTRETAN KAMERA BAWAAN HP LANGSUNG & PROSES OCR
+  const handleDirectCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input agar pemotretan berikutnya dapat dipicu ulang
+    e.target.value = '';
+
+    setOcrProcessing(true);
+    setOcrProgress(15);
+    setOcrStatusText('Membuka foto dari kamera HP...');
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const dataUrl = event.target.result;
+        try {
+          const result = await runClientOCR(dataUrl, (pct, status) => {
+            setOcrProgress(pct);
+            setOcrStatusText(status);
+          });
+
+          if (result.success && result.nik) {
+            if (ocrMode === 'login') {
+              // Langsung login via NIK kartu
+              await handleOcrFastLogin(result.nik);
+            } else {
+              // Mode registrasi: langsung isikan NIK, Nama, dan No HP ke form
+              setRegNik(result.nik);
+              if (result.name) setRegName(result.name);
+              if (result.phone) setRegPhone(result.phone);
+              setSuccessMsg(`Foto berhasil diproses! NIK: ${result.nik}${result.name ? ' (' + result.name + ')' : ''} terisi otomatis. Silakan tentukan jabatan & buat password.`);
+            }
+          } else {
+            setErrorMsg(
+              result.error || 
+              'NIK tidak terbaca jelas dari foto kartu. Pastikan cahaya cukup terang dan tidak buram, atau Anda dapat mengetikkan NIK secara manual di bawah.'
+            );
+          }
+        } catch (err) {
+          setErrorMsg('Gagal memproses OCR: ' + err.message);
+        } finally {
+          setOcrProcessing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setOcrProcessing(false);
+      setErrorMsg('Gagal membaca berkas kamera: ' + err.message);
     }
   };
 
@@ -304,13 +346,13 @@ export const AuthView = ({ onLoginSuccess }) => {
                   type="button"
                   onClick={() => {
                     setOcrMode('login');
-                    setIsOcrOpen(true);
+                    cameraInputRef.current?.click();
                   }}
-                  disabled={loading}
-                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-extrabold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 disabled:opacity-50"
+                  disabled={loading || ocrProcessing}
+                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white text-xs sm:text-sm font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 disabled:opacity-50"
                 >
-                  <ScanLine className="w-4 h-4 text-amber-400" />
-                  <span>Scan Kartu Identitas (Langsung Masuk)</span>
+                  <Camera className="w-5 h-5 text-amber-400" />
+                  <span>Buka Kamera HP (Foto & Langsung Masuk)</span>
                 </button>
               </div>
 
@@ -403,12 +445,13 @@ export const AuthView = ({ onLoginSuccess }) => {
                   type="button"
                   onClick={() => {
                     setOcrMode('register');
-                    setIsOcrOpen(true);
+                    cameraInputRef.current?.click();
                   }}
-                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm transition cursor-pointer"
+                  disabled={ocrProcessing}
+                  className="w-full bg-[#0F5132] hover:bg-[#0a3622] active:scale-98 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition cursor-pointer"
                 >
-                  <ScanLine className="w-4 h-4 text-amber-400" />
-                  <span>Foto & Scan Kartu Identitas (OCR)</span>
+                  <Camera className="w-4 h-4 text-amber-400" />
+                  <span>Buka Kamera HP Foto KTP / Mine Permit (Isi Otomatis)</span>
                 </button>
               </div>
 
@@ -644,14 +687,37 @@ export const AuthView = ({ onLoginSuccess }) => {
         </div>
       )}
 
-      {/* OCR Scanner Modal Component */}
-      <OcrScannerModal
-        isOpen={isOcrOpen}
-        onClose={() => setIsOcrOpen(false)}
-        onScanComplete={handleScanComplete}
-        mode={ocrMode}
-        title={ocrMode === 'login' ? 'Scan Kartu Identitas (Login Cepat)' : 'Scan KTP / ID Card Registrasi'}
+      {/* Input Kamera Default Bawaan HP (capture="environment") */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleDirectCameraCapture}
       />
+
+      {/* Loading Overlay Saat OCR Membaca Foto dari Kamera HP */}
+      {ocrProcessing && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-200">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto text-[#0F5132]">
+              <RefreshCw className="w-8 h-8 text-[#0F5132] animate-spin" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900">Membaca Kartu Identitas</h3>
+              <p className="text-xs text-slate-500 mt-1">{ocrStatusText || 'Mengekstrak NIK & Nama...'}</p>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-[#0F5132] h-3 rounded-full transition-all duration-300 ease-out" 
+                style={{ width: `${ocrProgress}%` }}
+              />
+            </div>
+            <span className="text-xs font-mono font-bold text-[#0F5132]">{ocrProgress}%</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
