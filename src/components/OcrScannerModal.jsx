@@ -252,11 +252,11 @@ export const OcrScannerModal = ({
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-emerald-950 flex items-start space-x-2.5">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div className="text-[11px] sm:text-xs">
-              <span className="font-bold text-[#0F5132]">Tips Cepat:</span> Posisikan kartu KTP/ID pas di dalam bingkai kotak kuning, pastikan pencahayaan cukup dan angka NIK terlihat tajam.
+              <span className="font-bold text-[#0F5132]">Petunjuk Kamera:</span> Arahkan kamera ke kartu identitas (KTP / Mine Permit), pastikan tulisan terbaca jelas dan tidak buram, lalu klik tombol <strong>Ambil Foto</strong>.
             </div>
           </div>
 
-          {/* Area Kamera Langsung (Live Viewfinder) */}
+          {/* Area Kamera Langsung (Pure Clean Camera Viewfinder - Tanpa Kotak-Kotak Hiasan) */}
           {isCameraActive && (
             <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border-2 border-[#0F5132] shadow-md">
               <video 
@@ -266,23 +266,13 @@ export const OcrScannerModal = ({
                 muted 
                 className="w-full h-full object-cover" 
               />
-              
-              {/* ID Card Target Frame Overlay */}
-              <div className="absolute inset-x-6 inset-y-4 sm:inset-x-8 sm:inset-y-6 border-2 border-dashed border-amber-400 rounded-2xl pointer-events-none flex flex-col justify-between p-2 shadow-inner">
-                <span className="text-[9px] sm:text-[10px] text-amber-300 bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded-md self-start font-mono font-bold">
-                  BINGKAI KARTU IDENTITAS
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-white bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded-md self-center font-semibold">
-                  Arahkan NIK ke tengah kotak ini
-                </span>
-              </div>
 
               {/* Top Controls: Flip Camera Button */}
-              <div className="absolute top-2 right-2 flex space-x-1.5">
+              <div className="absolute top-2 right-2 flex space-x-1.5 z-10">
                 <button
                   type="button"
                   onClick={handleToggleFacingMode}
-                  className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-xl backdrop-blur-xs transition flex items-center space-x-1 text-[11px] font-bold cursor-pointer"
+                  className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-xl backdrop-blur-xs transition flex items-center space-x-1 text-[11px] font-bold cursor-pointer"
                   title="Ganti Kamera Depan / Belakang"
                 >
                   <SwitchCamera className="w-4 h-4 text-amber-300" />
@@ -291,7 +281,7 @@ export const OcrScannerModal = ({
               </div>
 
               {/* Bottom Snap Controls */}
-              <div className="absolute bottom-2.5 inset-x-0 flex justify-center items-center space-x-2.5 px-3">
+              <div className="absolute bottom-2.5 inset-x-0 flex justify-center items-center space-x-2.5 px-3 z-10">
                 <button
                   type="button"
                   onClick={captureFrame}
@@ -306,7 +296,7 @@ export const OcrScannerModal = ({
                   onClick={stopCamera}
                   className="bg-black/70 hover:bg-black/90 text-white text-xs px-3.5 py-2.5 rounded-full backdrop-blur-xs transition cursor-pointer font-bold"
                 >
-                  Tutup Kamera
+                  Tutup
                 </button>
               </div>
             </div>
