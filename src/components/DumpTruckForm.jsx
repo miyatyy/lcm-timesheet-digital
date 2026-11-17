@@ -15,6 +15,7 @@ import {
 import confetti from 'canvas-confetti';
 import { dtTimesheetRepo } from '../lib/supabase';
 import { printDTDailyPDF } from '../lib/exportPdf';
+import { PaperHMPhotoUpload } from './PaperHMPhotoUpload';
 
 const DEFAULT_HOURS_SIANG = [
   '06:00-07:00', '07:00-08:00', '08:00-09:00', '09:00-10:00',
@@ -57,6 +58,7 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
   // Work Hours Table & Ritase Logs
   const [whLogs, setWhLogs] = useState([]);
   const [ritaseLogs, setRitaseLogs] = useState(DEFAULT_RITASE_SLOTS_SIANG);
+  const [fotoKertasHm, setFotoKertasHm] = useState('');
 
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -153,6 +155,7 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
         opt_name: namaOpt,
         pengawas,
         office,
+        foto_kertas_hm: fotoKertasHm,
         wh_logs: whLogs,
         ritase_logs: ritaseLogs,
         total_ritase: totalRitase
@@ -193,6 +196,7 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
       jam_kerja_mp: parseFloat(jamKerjaMp) || 0,
       pengawas,
       office,
+      foto_kertas_hm: fotoKertasHm,
       wh_logs: whLogs,
       ritase_logs: ritaseLogs,
       total_ritase: totalRitase
@@ -658,6 +662,17 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
           </div>
         </div>
 
+        {/* ========================================================================= */}
+        {/* LAMPIRAN BUKTI FOTO KERTAS HM / SLIP RITASE FISIK (MAKS 4 MB)             */}
+        {/* ========================================================================= */}
+        <PaperHMPhotoUpload
+          photoValue={fotoKertasHm}
+          onPhotoChange={setFotoKertasHm}
+          title="Bukti Foto Kertas HM / Slip Ritase Fisik (Driver Dump Truck)"
+          subtitle="Potret lembar slip ritase / kertas HM fisik Anda atau unggah dari galeri (maks 4 MB) agar admin dapat memantau validitas hauling."
+          disabled={saving}
+        />
+
         {/* Action Buttons Footer */}
         <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-2">
           <button
@@ -723,6 +738,15 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
                   {totalRitase} Rit
                 </span>
               </div>
+              {fotoKertasHm && (
+                <div className="flex items-center justify-between text-emerald-800 bg-emerald-50 p-2 rounded-xl border border-emerald-200 text-[11px] font-bold">
+                  <span className="flex items-center space-x-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Bukti Kertas Fisik Terlampir</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-700">Siap Ditinjau Admin</span>
+                </div>
+              )}
             </div>
 
             {/* Alert & Countdown Otomatis Logout */}

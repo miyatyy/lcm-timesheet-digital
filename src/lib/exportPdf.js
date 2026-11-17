@@ -191,6 +191,25 @@ export const printHEDailyPDF = (record) => {
   const finalY = doc.lastAutoTable.finalY + 14;
   drawSignatures(doc, finalY, record.nama_opt, record.pengawas, record.office);
 
+  // Lampirkan Bukti Foto Kertas HM Fisik jika ada
+  if (record.foto_kertas_hm && typeof record.foto_kertas_hm === 'string' && record.foto_kertas_hm.startsWith('data:image')) {
+    try {
+      doc.addPage();
+      drawHeader(doc, 'LAMPIRAN BUKTI FISIK LEMBAR KERTAS HM');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Unit: ${record.unit_code || '-'} (${record.model_unit || '-'}) | Operator: ${record.nama_opt || '-'} (NIK: ${record.nik || '-'})`, 14, 43);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Tanggal: ${record.tanggal || '-'} | Shift: ${record.shift || '-'} | Total HM: ${Number(record.total_hm || 0).toFixed(2)} Jam`, 14, 48);
+      
+      // Render foto fisik di area halaman PDF
+      doc.addImage(record.foto_kertas_hm, 'JPEG', 18, 52, 174, 220, undefined, 'FAST');
+    } catch (e) {
+      console.warn('Gagal melampirkan foto kertas HM ke PDF:', e);
+    }
+  }
+
   // Trigger Save / Open
   doc.save(`TimeSheet_HE_${record.unit_code || 'Unit'}_${record.tanggal || 'HariIni'}.pdf`);
 };
@@ -351,6 +370,25 @@ export const printDTDailyPDF = (record) => {
 
   const finalY = doc.lastAutoTable.finalY + 12;
   drawSignatures(doc, finalY, record.nama_opt, record.pengawas, record.office);
+
+  // Lampirkan Bukti Foto Kertas HM / Slip Ritase Fisik jika ada
+  if (record.foto_kertas_hm && typeof record.foto_kertas_hm === 'string' && record.foto_kertas_hm.startsWith('data:image')) {
+    try {
+      doc.addPage();
+      drawHeader(doc, 'LAMPIRAN BUKTI FISIK SLIP RITASE / KERTAS HM');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Unit: ${record.unit_code || '-'} (${record.model_unit || '-'}) | Driver: ${record.nama_opt || '-'} (NIK: ${record.nik || '-'})`, 14, 43);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Tanggal: ${record.tanggal || '-'} | Shift: ${record.shift || '-'} (Shift ${record.pergantian || 'I'}) | Total Ritase: ${record.total_ritase || 0} Rit`, 14, 48);
+      
+      // Render foto fisik di area halaman PDF
+      doc.addImage(record.foto_kertas_hm, 'JPEG', 18, 52, 174, 220, undefined, 'FAST');
+    } catch (e) {
+      console.warn('Gagal melampirkan foto slip ke PDF:', e);
+    }
+  }
 
   doc.save(`TimeSheet_DT_${record.unit_code || 'Unit'}_${record.tanggal || 'HariIni'}.pdf`);
 };

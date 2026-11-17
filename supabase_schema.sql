@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS public.he_timesheets (
     pengawas VARCHAR(255),
     office VARCHAR(255),
     pergantian VARCHAR(20) DEFAULT 'I',
+    foto_kertas_hm TEXT, -- Bukti foto kertas timesheet fisik (Base64 JPEG / Storage URL maks 4MB)
     wh_logs JSONB DEFAULT '[]'::jsonb, -- Detail jam kerja [ { time, kegiatan, keterangan, check_hour } ]
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT timezone('Asia/Makassar', now())
@@ -75,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.dt_timesheets (
     opt_name VARCHAR(255),
     pengawas VARCHAR(255),
     office VARCHAR(255),
+    foto_kertas_hm TEXT, -- Bukti foto slip ritase / kertas HM fisik (Base64 JPEG / Storage URL maks 4MB)
     wh_logs JSONB DEFAULT '[]'::jsonb, -- Detail jam kerja
     ritase_logs JSONB DEFAULT '[]'::jsonb, -- Detail ritase [ { time, ex_code, count } ]
     total_ritase INTEGER DEFAULT 0,
@@ -279,3 +281,9 @@ VALUES
     ]'::jsonb,
     28
 );
+
+-- ==============================================================================
+-- 9. MIGRATION COMMANDS FOR EXISTING DATABASES
+-- ==============================================================================
+ALTER TABLE IF EXISTS public.he_timesheets ADD COLUMN IF NOT EXISTS foto_kertas_hm TEXT;
+ALTER TABLE IF EXISTS public.dt_timesheets ADD COLUMN IF NOT EXISTS foto_kertas_hm TEXT;

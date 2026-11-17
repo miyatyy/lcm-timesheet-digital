@@ -18,7 +18,13 @@ import {
   Calendar,
   Layers,
   Sparkles,
-  Info
+  Info,
+  Camera,
+  ZoomIn,
+  Eye,
+  Image as ImageIcon,
+  ExternalLink,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -44,6 +50,12 @@ export const AdminDashboard = ({ currentUser }) => {
   const [filterShift, setFilterShift] = useState('ALL');
   const [searchUnit, setSearchUnit] = useState('');
   const [searchEmployee, setSearchEmployee] = useState('');
+
+  // Paper HM Photo Proof Modal & Filters
+  const [selectedPhotoModal, setSelectedPhotoModal] = useState(null);
+  const [photoRoleFilter, setPhotoRoleFilter] = useState('ALL'); // 'ALL' | 'HE' | 'DT'
+  const [photoStatusFilter, setPhotoStatusFilter] = useState('ALL'); // 'ALL' | 'HAS_PHOTO' | 'NO_PHOTO'
+  const [photoSearch, setPhotoSearch] = useState('');
 
   // Password Reset Modal State
   const [selectedEmp, setSelectedEmp] = useState(null);
@@ -101,15 +113,24 @@ export const AdminDashboard = ({ currentUser }) => {
           hmAwal: Number(item.hm_awal || 0),
           hmAkhir: Number(item.hm_akhir || 0),
           totalHm: Number(item.total_hm || 0),
+          fotoKertasHm: item.foto_kertas_hm || '',
           operators: [
-            { name: item.nama_opt, hm: Number(item.total_hm || 0) }
+            { name: item.nama_opt, hm: Number(item.total_hm || 0), nik: item.nik, fotoKertasHm: item.foto_kertas_hm || '' }
           ]
         };
       } else {
         unitMap[key].hmAwal = Math.min(unitMap[key].hmAwal, Number(item.hm_awal || 0));
         unitMap[key].hmAkhir = Math.max(unitMap[key].hmAkhir, Number(item.hm_akhir || 0));
         unitMap[key].totalHm = unitMap[key].hmAkhir - unitMap[key].hmAwal;
-        unitMap[key].operators.push({ name: item.nama_opt, hm: Number(item.total_hm || 0) });
+        unitMap[key].operators.push({ 
+          name: item.nama_opt, 
+          hm: Number(item.total_hm || 0), 
+          nik: item.nik, 
+          fotoKertasHm: item.foto_kertas_hm || '' 
+        });
+        if (!unitMap[key].fotoKertasHm && item.foto_kertas_hm) {
+          unitMap[key].fotoKertasHm = item.foto_kertas_hm;
+        }
       }
     };
 
@@ -120,6 +141,14 @@ export const AdminDashboard = ({ currentUser }) => {
   };
 
   const hmUnitRows = computeDatabaseHMRows();
+
+  // All individual timesheet reports for Admin monitoring
+  const allOperationalReports = [
+    ...heList.map(h => ({ ...h, isDT: false, roleName: 'Operator Alat Berat', roleBadge: 'HE' })),
+    ...dtList.map(d => ({ ...d, isDT: true, roleName: 'Driver Dump Truck', roleBadge: 'DT' }))
+  ].sort((a, b) => new Date(b.tanggal || b.created_at || 0) - new Date(a.tanggal || a.created_at || 0));
+
+  const totalReportsWithPhoto = allOperationalReports.filter(r => !!r.foto_kertas_hm).length;
 
   // Stats
   const totalUnits = new Set([...heList.map(h => h.unit_code), ...dtList.map(d => d.unit_code)]).size;
@@ -256,6 +285,18 @@ export const AdminDashboard = ({ currentUser }) => {
           </button>
 
           <button
+            onClick={() => setActiveTab('bukti')}
+            className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+              activeTab === 'bukti'
+                ? 'bg-[#1e3a8a] text-white shadow-xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <Camera className="w-4 h-4 text-amber-400" />
+            <span>Bukti Kertas HM ({totalReportsWithPhoto})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('karyawan')}
             className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
               activeTab === 'karyawan'
@@ -282,7 +323,7 @@ export const AdminDashboard = ({ currentUser }) => {
       </div>
 
       {/* KPI Stats Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold">
             <HardHat className="w-5 h-5" />
@@ -314,6 +355,16 @@ export const AdminDashboard = ({ currentUser }) => {
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <Camera className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 block uppercase">Bukti Kertas HM</span>
+            <span className="text-lg font-black text-slate-900">{totalReportsWithPhoto} <span className="text-xs font-normal text-slate-500">/{allOperationalReports.length}</span></span>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3 col-span-2 sm:col-span-1">
           <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
             <Users className="w-5 h-5" />
           </div>
@@ -422,7 +473,7 @@ export const AdminDashboard = ({ currentUser }) => {
             {/* Mobile Scroll Hint */}
             <div className="lg:hidden flex items-center justify-between text-[11px] text-slate-600 bg-slate-100 px-3 py-1.5 border-b border-slate-200">
               <span className="font-semibold">👉 Geser tabel ke samping untuk melihat seluruh operator & HM</span>
-              <span className="font-mono text-[10px] text-slate-500">14 Kolom</span>
+              <span className="font-mono text-[10px] text-slate-500">15 Kolom</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -442,6 +493,7 @@ export const AdminDashboard = ({ currentUser }) => {
                     <th className="py-3 px-3 text-right">HM Opt 2</th>
                     <th className="py-3 px-3 border-l border-slate-200">Operator 3</th>
                     <th className="py-3 px-3 text-right">HM Opt 3</th>
+                    <th className="py-3 px-3 text-center">Bukti Kertas HM</th>
                     <th className="py-3 px-3 text-center">Print Lembar</th>
                   </tr>
                 </thead>
@@ -470,6 +522,34 @@ export const AdminDashboard = ({ currentUser }) => {
                           <td className="py-2.5 px-3 border-l border-slate-200 text-slate-600">{opt3.name}</td>
                           <td className="py-2.5 px-3 text-right font-mono">{opt3.hm > 0 ? opt3.hm.toFixed(1) : '-'}</td>
                           
+                          {/* Bukti Foto Kertas HM */}
+                          <td className="py-2.5 px-3 text-center">
+                            {row.fotoKertasHm ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPhotoModal({
+                                  photoUrl: row.fotoKertasHm,
+                                  operatorName: row.operators.map(o => o.name).filter(Boolean).join(', ') || row.rawItem.nama_opt,
+                                  nik: row.operators.map(o => o.nik).filter(Boolean).join(', ') || row.rawItem.nik || '-',
+                                  unitCode: row.noUnit,
+                                  modelUnit: row.modelUnit,
+                                  date: row.date,
+                                  shift: row.shift,
+                                  totalHm: row.totalHm,
+                                  type: row.isDT ? 'Dump Truck' : 'Alat Berat (HE)',
+                                  rawItem: row.rawItem
+                                })}
+                                className="inline-flex items-center space-x-1.5 bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] text-[11px] font-bold px-2.5 py-1 rounded-xl border border-blue-200 transition cursor-pointer"
+                                title="Klik untuk meninjau foto lembar kertas HM fisik"
+                              >
+                                <Camera className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                                <span>Lihat Foto</span>
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-xs italic">-</span>
+                            )}
+                          </td>
+
                           {/* Print Out PDF Harian Per Karyawan / Unit */}
                           <td className="py-2.5 px-3 text-center">
                             <button
@@ -491,7 +571,7 @@ export const AdminDashboard = ({ currentUser }) => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="14" className="text-center py-8 text-slate-400">
+                      <td colSpan="15" className="text-center py-8 text-slate-400">
                         Tidak ada catatan unit yang sesuai dengan filter.
                       </td>
                     </tr>
@@ -503,6 +583,307 @@ export const AdminDashboard = ({ currentUser }) => {
 
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* TAB: PEMANTAUAN BUKTI FOTO KERTAS HM FISIK SELURUH KARYAWAN               */}
+      {/* ========================================================================= */}
+      {activeTab === 'bukti' && (() => {
+        // Filter operational reports
+        const filteredReports = allOperationalReports.filter(rep => {
+          // Filter Role (HE / DT)
+          if (photoRoleFilter === 'HE' && rep.isDT) return false;
+          if (photoRoleFilter === 'DT' && !rep.isDT) return false;
+
+          // Filter Status Foto
+          if (photoStatusFilter === 'HAS_PHOTO' && !rep.foto_kertas_hm) return false;
+          if (photoStatusFilter === 'NO_PHOTO' && rep.foto_kertas_hm) return false;
+
+          // Filter Tanggal
+          if (filterDate && rep.tanggal !== filterDate) return false;
+
+          // Filter Shift
+          if (filterShift !== 'ALL' && !rep.shift.includes(filterShift)) return false;
+
+          // Search Operator / NIK / Unit
+          if (photoSearch.trim()) {
+            const q = photoSearch.toLowerCase();
+            const matchNik = (rep.nik || '').toLowerCase().includes(q);
+            const matchName = (rep.nama_opt || '').toLowerCase().includes(q);
+            const matchUnit = (rep.unit_code || '').toLowerCase().includes(q);
+            if (!matchNik && !matchName && !matchUnit) return false;
+          }
+
+          return true;
+        });
+
+        const withPhotoCount = allOperationalReports.filter(r => !!r.foto_kertas_hm).length;
+        const withoutPhotoCount = allOperationalReports.length - withPhotoCount;
+
+        return (
+          <div className="space-y-4">
+            {/* Header & Controls Toolbar */}
+            <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-card border border-slate-200/80 space-y-4">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                    <Camera className="w-5 h-5 text-amber-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                      Pemantauan Bukti Foto Kertas HM & Slip Ritase Fisik
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Pantau dan verifikasi keaslian lembar kerja fisik yang dipotret langsung oleh operator & driver (Maks 4 MB).
+                    </p>
+                  </div>
+                </div>
+
+                {/* Counter Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{withPhotoCount} Foto Terlampir</span>
+                  </span>
+                  {withoutPhotoCount > 0 && (
+                    <span className="inline-flex items-center space-x-1.5 bg-amber-50 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-xl border border-amber-200">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{withoutPhotoCount} Belum Ada Foto</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Filter Toolbar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100">
+                {/* Search */}
+                <div className="relative sm:col-span-2 lg:col-span-2">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={photoSearch}
+                    onChange={(e) => setPhotoSearch(e.target.value)}
+                    placeholder="Cari Operator, NIK, No Unit..."
+                    className="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white outline-none"
+                  />
+                </div>
+
+                {/* Filter Role */}
+                <div>
+                  <select
+                    value={photoRoleFilter}
+                    onChange={(e) => setPhotoRoleFilter(e.target.value)}
+                    className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white outline-none"
+                  >
+                    <option value="ALL">Semua Role</option>
+                    <option value="HE">Operator Alat Berat (HE)</option>
+                    <option value="DT">Driver Dump Truck (DT)</option>
+                  </select>
+                </div>
+
+                {/* Filter Status Foto */}
+                <div>
+                  <select
+                    value={photoStatusFilter}
+                    onChange={(e) => setPhotoStatusFilter(e.target.value)}
+                    className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white outline-none"
+                  >
+                    <option value="ALL">Semua Status</option>
+                    <option value="HAS_PHOTO">✓ Ada Bukti Foto</option>
+                    <option value="NO_PHOTO">✕ Belum Ada Foto</option>
+                  </select>
+                </div>
+
+                {/* Filter Tanggal */}
+                <div>
+                  <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white outline-none"
+                  />
+                </div>
+              </div>
+
+              {(photoSearch || photoRoleFilter !== 'ALL' || photoStatusFilter !== 'ALL' || filterDate) && (
+                <div className="flex justify-end pt-1">
+                  <button
+                    onClick={() => {
+                      setPhotoSearch('');
+                      setPhotoRoleFilter('ALL');
+                      setPhotoStatusFilter('ALL');
+                      setFilterDate('');
+                    }}
+                    className="text-xs text-red-600 hover:underline font-semibold"
+                  >
+                    Reset Filter Pencarian
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Grid List Laporan & Foto Bukti Fisik */}
+            {filteredReports.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredReports.map((item, idx) => (
+                  <div 
+                    key={item.id || idx}
+                    className="bg-white rounded-3xl border border-slate-200/80 shadow-card hover:shadow-lg transition flex flex-col overflow-hidden"
+                  >
+                    {/* Top Header Card */}
+                    <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
+                          item.isDT ? 'bg-amber-100 text-amber-900' : 'bg-blue-100 text-[#1e3a8a]'
+                        }`}>
+                          {item.isDT ? <Truck className="w-4 h-4" /> : <HardHat className="w-4 h-4" />}
+                        </span>
+                        <div>
+                          <h4 className="font-mono font-black text-sm text-[#1e3a8a]">
+                            {item.unit_code}
+                          </h4>
+                          <span className="text-[10px] text-slate-500 font-medium block">
+                            {item.model_unit || (item.isDT ? 'Hino 500' : 'Excavator')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                        item.isDT 
+                          ? 'bg-amber-50 text-amber-900 border-amber-200' 
+                          : 'bg-blue-50 text-[#1e3a8a] border-blue-200'
+                      }`}>
+                        {item.roleBadge}
+                      </span>
+                    </div>
+
+                    {/* Foto Bukti / Placeholder */}
+                    <div className="p-4 bg-slate-50/60 flex-1 flex flex-col justify-center">
+                      {item.foto_kertas_hm ? (
+                        <div 
+                          onClick={() => setSelectedPhotoModal({
+                            photoUrl: item.foto_kertas_hm,
+                            operatorName: item.nama_opt,
+                            nik: item.nik,
+                            unitCode: item.unit_code,
+                            modelUnit: item.model_unit,
+                            date: item.tanggal,
+                            shift: item.shift,
+                            totalHm: item.total_hm,
+                            type: item.isDT ? 'Dump Truck' : 'Alat Berat (HE)',
+                            rawItem: item
+                          })}
+                          className="relative h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs cursor-pointer group"
+                        >
+                          <img 
+                            src={item.foto_kertas_hm} 
+                            alt={`Bukti Kertas ${item.unit_code}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white space-y-1">
+                            <ZoomIn className="w-6 h-6 text-amber-300" />
+                            <span className="text-xs font-bold">Periksa Ukuran Penuh</span>
+                          </div>
+                          <div className="absolute top-2 right-2 bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg backdrop-blur-xs flex items-center space-x-1 shadow-xs">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Foto Terlampir</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-44 rounded-2xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 text-center space-y-2">
+                          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <Camera className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-700">Belum Ada Bukti Foto</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              Karyawan mengisi data formulir tanpa melampirkan lembar fisik.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Detail Operator & Jam Kerja */}
+                      <div className="mt-3 bg-white p-3 rounded-2xl border border-slate-200 text-xs space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 font-medium">Karyawan:</span>
+                          <span className="font-bold text-slate-900">{item.nama_opt} <span className="font-mono text-slate-500 font-normal">({item.nik})</span></span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 font-medium">Waktu:</span>
+                          <span className="text-slate-700">{item.tanggal} • {item.shift}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-slate-100 pt-1">
+                          <span className="text-slate-500 font-medium">Jam Kerja (HM):</span>
+                          <span className="font-mono font-black text-[#1e3a8a]">{Number(item.total_hm || 0).toFixed(2)} Jam</span>
+                        </div>
+                        {item.isDT && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">Ritase:</span>
+                            <span className="font-mono font-bold text-amber-700">{item.total_ritase || 0} Rit</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-end space-x-2">
+                      {item.foto_kertas_hm && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPhotoModal({
+                            photoUrl: item.foto_kertas_hm,
+                            operatorName: item.nama_opt,
+                            nik: item.nik,
+                            unitCode: item.unit_code,
+                            modelUnit: item.model_unit,
+                            date: item.tanggal,
+                            shift: item.shift,
+                            totalHm: item.total_hm,
+                            type: item.isDT ? 'Dump Truck' : 'Alat Berat (HE)',
+                            rawItem: item
+                          })}
+                          className="bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] font-bold text-xs px-3 py-1.5 rounded-xl border border-blue-200 flex items-center space-x-1.5 transition cursor-pointer"
+                        >
+                          <ZoomIn className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                          <span>Inspeksi</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.isDT) {
+                            printDTDailyPDF(item);
+                          } else {
+                            printHEDailyPDF(item);
+                          }
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center space-x-1.5 transition cursor-pointer"
+                        title="Cetak lembar PDF (termasuk lampiran foto jika ada)"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-slate-600" />
+                        <span>PDF</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <Camera className="w-6 h-6" />
+                </div>
+                <h4 className="font-bold text-sm text-slate-800">
+                  Tidak Ada Bukti Kertas HM Ditemukan
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Belum ada laporan yang sesuai dengan kriteria filter. Silakan ubah filter tanggal, status foto, atau kata kunci pencarian.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* TAB 2: DAFTAR KARYAWAN HASIL SELF-REGISTRATION                            */}
@@ -810,6 +1191,113 @@ export const AdminDashboard = ({ currentUser }) => {
               >
                 {resetLoading ? 'Memproses...' : 'Ya, Unduh PDF & Bersihkan'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL INSPEKSI FOTO KERTAS HM UKURAN PENUH                                */}
+      {/* ========================================================================= */}
+      {selectedPhotoModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in"
+          onClick={() => setSelectedPhotoModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 bg-[#1e3a8a] text-white flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <Camera className="w-5 h-5 text-amber-300" />
+                <div>
+                  <h4 className="font-extrabold text-xs sm:text-sm">
+                    Inspeksi Bukti Foto Kertas HM Fisik
+                  </h4>
+                  <p className="text-[10px] text-blue-200">
+                    Unit: {selectedPhotoModal.unitCode} ({selectedPhotoModal.modelUnit || '-'}) • {selectedPhotoModal.type}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPhotoModal(null)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition cursor-pointer"
+                title="Tutup (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Meta Strip */}
+            <div className="bg-slate-100 px-5 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center space-x-3">
+                <span className="text-slate-600">
+                  Operator/Driver: <strong className="text-slate-900">{selectedPhotoModal.operatorName}</strong> ({selectedPhotoModal.nik})
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="text-slate-600">
+                  Tanggal: <strong className="text-slate-900">{selectedPhotoModal.date}</strong> ({selectedPhotoModal.shift})
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="bg-blue-100 text-[#1e3a8a] font-mono font-bold text-[11px] px-2.5 py-0.5 rounded-lg border border-blue-200">
+                  Total HM: {Number(selectedPhotoModal.totalHm || 0).toFixed(2)} Jam
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Image Body */}
+            <div className="p-4 bg-slate-950 flex items-center justify-center overflow-auto flex-1 max-h-[70vh]">
+              <img 
+                src={selectedPhotoModal.photoUrl} 
+                alt={`Bukti Fisik HM ${selectedPhotoModal.unitCode}`}
+                className="max-h-full max-w-full object-contain rounded-lg shadow-2xl select-none"
+              />
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-3.5 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+              <span className="text-slate-500 text-[11px]">
+                Validasi kesesuaian HM awal, HM akhir, tanda tangan pengawas, dan tanggal di kertas.
+              </span>
+              <div className="flex items-center space-x-2 self-end sm:self-auto">
+                <a
+                  href={selectedPhotoModal.photoUrl}
+                  download={`Bukti_HM_${selectedPhotoModal.unitCode}_${selectedPhotoModal.date}.jpg`}
+                  className="bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Unduh Foto</span>
+                </a>
+
+                {selectedPhotoModal.rawItem && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedPhotoModal.rawItem.isDT || selectedPhotoModal.type.includes('Dump Truck')) {
+                        printDTDailyPDF(selectedPhotoModal.rawItem);
+                      } else {
+                        printHEDailyPDF(selectedPhotoModal.rawItem);
+                      }
+                    }}
+                    className="bg-[#1e3a8a] hover:bg-[#172554] text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Cetak PDF Resmi</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedPhotoModal(null)}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         </div>

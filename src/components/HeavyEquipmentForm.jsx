@@ -17,6 +17,7 @@ import {
 import confetti from 'canvas-confetti';
 import { heTimesheetRepo } from '../lib/supabase';
 import { printHEDailyPDF } from '../lib/exportPdf';
+import { PaperHMPhotoUpload } from './PaperHMPhotoUpload';
 
 const DEFAULT_HOURS_SIANG = [
   '06:00-07:00', '07:00-08:00', '08:00-09:00', '09:00-10:00',
@@ -61,6 +62,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
 
   // Work Hours Table State
   const [whLogs, setWhLogs] = useState([]);
+  const [fotoKertasHm, setFotoKertasHm] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -146,6 +148,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
         opt_name: namaOpt,
         pengawas,
         office,
+        foto_kertas_hm: fotoKertasHm,
         wh_logs: whLogs
       };
 
@@ -183,6 +186,7 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
       jam_kerja_mp: parseFloat(jamKerjaMp) || 0,
       pengawas,
       office,
+      foto_kertas_hm: fotoKertasHm,
       wh_logs: whLogs
     };
     printHEDailyPDF(record);
@@ -579,6 +583,17 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
           </div>
         </div>
 
+        {/* ========================================================================= */}
+        {/* LAMPIRAN BUKTI FOTO KERTAS HM FISIK (MAKS 4 MB)                           */}
+        {/* ========================================================================= */}
+        <PaperHMPhotoUpload
+          photoValue={fotoKertasHm}
+          onPhotoChange={setFotoKertasHm}
+          title="Bukti Foto Kertas HM Fisik (Operator Alat Berat)"
+          subtitle="Potret lembar kertas timesheet HM fisik Anda atau unggah dari galeri (maks 4 MB) agar admin dapat memantau validitas jam kerja."
+          disabled={saving}
+        />
+
         {/* Action Buttons Footer */}
         <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-2">
           <button
@@ -642,6 +657,15 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
                 <span className="text-slate-700">Total HM Logika:</span>
                 <span className="font-mono text-blue-700 text-sm">{totalHm.toFixed(2)} Jam</span>
               </div>
+              {fotoKertasHm && (
+                <div className="flex items-center justify-between text-emerald-800 bg-emerald-50 p-2 rounded-xl border border-emerald-200 text-[11px] font-bold">
+                  <span className="flex items-center space-x-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Bukti Kertas HM Terlampir</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-700">Siap Ditinjau Admin</span>
+                </div>
+              )}
             </div>
 
             {/* Alert & Countdown Otomatis Logout */}
