@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  ScanLine, 
-  KeyRound, 
   UserPlus, 
   LogIn, 
-  ShieldCheck, 
   CreditCard, 
   User, 
   Lock, 
@@ -13,12 +10,10 @@ import {
   AlertTriangle,
   HardHat,
   Truck,
-  Sparkles,
   ArrowRight,
-  ArrowLeft,
-  ShieldAlert,
   Camera,
-  RefreshCw
+  RefreshCw,
+  MapPin
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { employeeRepo } from '../lib/supabase';
@@ -27,35 +22,14 @@ import { runClientOCR } from '../lib/ocr';
 export const AuthView = ({ 
   onLoginSuccess, 
   initialTab = 'login', 
-  initialTriggerOcr = false, 
-  onBackToDashboard,
-  isInstalledPWA = false,
-  isDesktop = true
+  ocrTriggerCount = 0
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab === 'register' ? 'register' : 'login');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Sinkronisasi tab jika prop berubah
-  useEffect(() => {
-    if (initialTab === 'register' || initialTab === 'login') {
-      setActiveTab(initialTab);
-    }
-  }, [initialTab]);
-
-  // Otomatis buka kamera jika dipicu dari tombol OCR di dashboard
-  useEffect(() => {
-    if (initialTriggerOcr && cameraInputRef.current) {
-      const timer = setTimeout(() => {
-        setOcrMode('login');
-        cameraInputRef.current?.click();
-      }, 350);
-      return () => clearTimeout(timer);
-    }
-  }, [initialTriggerOcr]);
-
-  // Direct Camera OCR State (Menggunakan Kamera Bawaan HP Langsung)
+  // Direct Camera OCR State (Kamera Bawaan HP Langsung - Khusus NIK)
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStatusText, setOcrStatusText] = useState('');
@@ -77,7 +51,27 @@ export const AuthView = ({
   // Registration Confirmation Modal State
   const [registeredUserConfirmation, setRegisteredUserConfirmation] = useState(null);
 
-  // 1. LOGIN METHOD 1: FAST SCAN OCR (Tanpa Password)
+  // Sinkronisasi tab jika prop berubah
+  useEffect(() => {
+    if (initialTab === 'register' || initialTab === 'login') {
+      setActiveTab(initialTab);
+      setErrorMsg('');
+      setSuccessMsg('');
+    }
+  }, [initialTab]);
+
+  // Otomatis buka kamera bawaan HP jika dipicu dari tombol/menu Scan OCR
+  useEffect(() => {
+    if (ocrTriggerCount > 0 && cameraInputRef.current) {
+      const timer = setTimeout(() => {
+        setOcrMode('login');
+        cameraInputRef.current?.click();
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [ocrTriggerCount]);
+
+  // 1. LOGIN CEPAT VIA OCR (KHUSUS NIK)
   const handleOcrFastLogin = async (nik) => {
     setLoading(true);
     setErrorMsg('');
@@ -86,20 +80,20 @@ export const AuthView = ({
     try {
       const employee = await employeeRepo.findByNik(nik);
       if (!employee) {
-        setErrorMsg(`NIK ${nik} belum terdaftar di sistem. Silakan klik tab 'Registrasi Akun Baru' untuk mendaftar terlebih dahulu.`);
+        setErrorMsg(`NIK ${nik} belum terdaftar. Silakan klik tab 'Daftar Akun' terlebih dahulu.`);
         return;
       }
 
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 70,
+        spread: 65,
         origin: { y: 0.6 }
       });
 
-      setSuccessMsg(`Selamat datang kembali, ${employee.name}! Membuka lembar kerja (${employee.jabatan})...`);
+      setSuccessMsg(`Selamat datang, ${employee.name}! Membuka lembar kerja...`);
       setTimeout(() => {
         onLoginSuccess(employee);
-      }, 700);
+      }, 600);
     } catch (err) {
       setErrorMsg(err.message || 'Gagal memproses login cepat via OCR');
     } finally {
@@ -107,7 +101,7 @@ export const AuthView = ({
     }
   };
 
-  // 2. LOGIN METHOD 2: MANUAL (NIK + Password)
+  // 2. LOGIN MANUAL (NIK + PASSWORD) - 1 PINTU SEMUA ROLE
   const handleManualLogin = async (e) => {
     e.preventDefault();
     if (!loginNik.trim() || !loginPassword.trim()) {
@@ -126,9 +120,8 @@ export const AuthView = ({
         return;
       }
 
-      // Validasi Password
       if (employee.password_hash !== loginPassword) {
-        setErrorMsg('Password salah! Periksa kembali atau hubungi Admin Site jika lupa password.');
+        setErrorMsg('Password salah. Periksa kembali atau hubungi Admin Site.');
         return;
       }
 
@@ -138,10 +131,10 @@ export const AuthView = ({
         origin: { y: 0.6 }
       });
 
-      setSuccessMsg(`Login berhasil. Halo, ${employee.name} (${employee.jabatan})!`);
+      setSuccessMsg(`Berhasil masuk. Halo, ${employee.name}!`);
       setTimeout(() => {
         onLoginSuccess(employee);
-      }, 500);
+      }, 450);
     } catch (err) {
       setErrorMsg(err.message || 'Terjadi kesalahan saat masuk');
     } finally {
@@ -156,7 +149,7 @@ export const AuthView = ({
     setSuccessMsg('');
 
     if (!regNik.trim()) {
-      setErrorMsg('NIK wajib diisi (bisa scan KTP atau ketik manual).');
+      setErrorMsg('NIK wajib diisi (scan kartu atau ketik manual).');
       return;
     }
     if (!regName.trim()) {
@@ -174,7 +167,6 @@ export const AuthView = ({
 
     setLoading(true);
     try {
-      // Role otomatis ditentukan strictly: hanya 1 role per akun
       const targetRole = regJabatan.includes('Dump Truck') ? 'driver' : 'operator';
 
       const newEmployee = await employeeRepo.register({
@@ -187,14 +179,12 @@ export const AuthView = ({
       });
 
       confetti({
-        particleCount: 100,
-        spread: 80,
+        particleCount: 90,
+        spread: 75,
         origin: { y: 0.6 }
       });
 
-      // Tampilkan Modal Konfirmasi Pendaftaran Lengkap
       setRegisteredUserConfirmation(newEmployee);
-
     } catch (err) {
       setErrorMsg(err.message || 'Gagal mendaftar');
     } finally {
@@ -202,17 +192,15 @@ export const AuthView = ({
     }
   };
 
-  // 4. PEMOTRETAN KAMERA BAWAAN HP LANGSUNG & PROSES OCR
+  // 4. PEMOTRETAN KAMERA BAWAAN HP LANGSUNG & PROSES OCR KHUSUS NIK
   const handleDirectCameraCapture = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Reset input agar pemotretan berikutnya dapat dipicu ulang
     e.target.value = '';
 
     setOcrProcessing(true);
     setOcrProgress(15);
-    setOcrStatusText('Membuka foto dari kamera HP...');
+    setOcrStatusText('Membuka foto dari kamera...');
     setErrorMsg('');
     setSuccessMsg('');
 
@@ -228,17 +216,16 @@ export const AuthView = ({
 
           if (result.success && result.nik) {
             if (ocrMode === 'login') {
-              // Langsung login via NIK kartu
               await handleOcrFastLogin(result.nik);
             } else {
-              // Mode registrasi: KHUSUS NIK SAJA sesuai instruksi user
+              // KHUSUS NIK SAJA sesuai permintaan user
               setRegNik(result.nik);
-              setSuccessMsg(`Kartu berhasil dipindai! NIK: ${result.nik} berhasil terisi otomatis. Silakan lengkapi Nama, Jabatan, No. Telepon (jika ada), dan buat Password.`);
+              setSuccessMsg(`NIK terdeteksi: ${result.nik}. Silakan lengkapi Nama, Jabatan, & Password.`);
             }
           } else {
             setErrorMsg(
-              result.error || 
-              'NIK tidak terbaca jelas dari foto kartu. Pastikan cahaya cukup terang dan tidak buram, atau Anda dapat mengetikkan NIK secara manual di bawah.'
+              result.error ||
+              'NIK tidak terbaca jelas. Pastikan cahaya terang & fokus, atau ketik NIK secara manual.'
             );
           }
         } catch (err) {
@@ -255,130 +242,142 @@ export const AuthView = ({
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-3 sm:p-6 bg-[#F8FAFC]">
-      <div className="w-full max-w-xl space-y-3">
-        {/* Tombol Kembali ke Dashboard Beranda (Khusus Browser Desktop Saja & Bukan PWA Terinstal) */}
-        {onBackToDashboard && !isInstalledPWA && isDesktop && (
-          <button
-            type="button"
-            onClick={onBackToDashboard}
-            className="inline-flex items-center space-x-2 text-xs font-bold text-[#1e3a8a] hover:text-blue-700 bg-white hover:bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-200 shadow-2xs transition cursor-pointer active:scale-98"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#1e3a8a]" />
-            <span>← Kembali ke Beranda Profil PT. LCM</span>
-          </button>
-        )}
-
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+    <div className="flex-1 flex items-center justify-center px-3.5 py-4 sm:px-6 sm:py-8 bg-[#F8FAFC]">
+      <div className="w-full max-w-md lg:max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 animate-in fade-in duration-300">
         
-        {/* ============================================================================== */}
-        {/* BANNER ATAS DENGAN FOTO OPERASIONAL TAMBANG & LOGO RESMI LCM                   */}
-        {/* ============================================================================== */}
-        <div className="relative h-52 sm:h-56 overflow-hidden bg-black">
+        {/* ========================================================================= */}
+        {/* PANEL KIRI DESKTOP (VISUAL PERUSAHAAN RINGKAS & PROFESIONAL)              */}
+        {/* ========================================================================= */}
+        <div className="hidden lg:flex lg:col-span-5 relative bg-slate-950 overflow-hidden flex-col justify-between p-8 text-white">
           <img 
             src="/excavator-mining.webp" 
             alt="Operasional Tambang PT. LAZ COAL MANDIRI" 
-            className="w-full h-full object-cover opacity-60 scale-105 select-none"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-45 scale-105 select-none"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#1e3a8a]/65 to-[#0f172a]/75" />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#1e3a8a]/40 to-black/70" />
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-            <div className="bg-white/95 backdrop-blur-md p-2 rounded-full shadow-2xl border-2 border-amber-400 mb-2 flex items-center justify-center">
+          <div className="relative flex items-center space-x-3">
+            <div className="w-11 h-11 rounded-full bg-white p-1 shadow-lg border border-amber-400/70 shrink-0">
               <img 
                 src="/lcm-logo.png" 
                 alt="PT. LAZ COAL MANDIRI" 
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-full"
+                className="w-full h-full object-contain rounded-full"
               />
             </div>
-            <h2 className="text-white font-extrabold text-base sm:text-lg tracking-wide drop-shadow-md">
-              PT. LAZ COAL MANDIRI
-            </h2>
-            <div className="inline-flex items-center space-x-1.5 bg-black/60 backdrop-blur-xs text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border border-amber-400/40 mt-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Sistem TimeSheet Digital Resmi Site Arutmin Kintap</span>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 block">
+                Akses 1 Pintu
+              </span>
+              <h2 className="text-base font-black text-white leading-tight">
+                PT. LAZ COAL MANDIRI
+              </h2>
+            </div>
+          </div>
+
+          <div className="relative space-y-3">
+            <h3 className="text-xl font-black leading-snug text-white">
+              Sistem TimeSheet Digital Terpadu
+            </h3>
+            <p className="text-xs text-blue-100/90 leading-relaxed">
+              Masuk dengan NIK atau scan Mine Permit / ID Card untuk mencatat jam kerja (HM), ritase hauling, dan unggah foto bukti kertas HM secara realtime.
+            </p>
+            <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-xs px-3 py-1 rounded-full border border-white/20 text-[11px] font-semibold text-blue-100">
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Site Arutmin Indonesia • Kintap</span>
             </div>
           </div>
         </div>
 
-        {/* Tab Selector: Masuk vs Registrasi */}
-        <div className="flex border-b border-slate-200 bg-slate-50/80 p-1.5 gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('login');
-              setErrorMsg('');
-              setSuccessMsg('');
-            }}
-            className={`flex-1 py-3 text-xs sm:text-sm font-bold rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer ${
-              activeTab === 'login'
-                ? 'bg-[#1e3a8a] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-            }`}
-          >
-            <LogIn className="w-4 h-4" />
-            <span>Masuk (Login)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('register');
-              setErrorMsg('');
-              setSuccessMsg('');
-            }}
-            className={`flex-1 py-3 text-xs sm:text-sm font-bold rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer ${
-              activeTab === 'register'
-                ? 'bg-[#1e3a8a] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-            }`}
-          >
-            <UserPlus className="w-4 h-4 text-amber-400" />
-            <span>Registrasi Akun Baru</span>
-          </button>
-        </div>
-
-        {/* Feedback Alert Boxes */}
-        <div className="p-6 pt-5 space-y-4">
-          {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-800 text-xs p-3.5 rounded-2xl flex items-start space-x-2.5 animate-in fade-in">
-              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-              <div className="flex-1 font-medium">{errorMsg}</div>
+        {/* ========================================================================= */}
+        {/* PANEL FORM MASUK & DAFTAR (PAS 1 LAYAR HP, RAPI DI LAPTOP)               */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-7 flex flex-col">
+          
+          {/* Mini Header Khusus Mobile (Ringkas, tidak memakan layar) */}
+          <div className="lg:hidden bg-gradient-to-r from-[#1e3a8a] to-[#172554] px-4 py-3 text-white flex items-center justify-between">
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <img 
+                src="/lcm-logo.png" 
+                alt="Logo LCM" 
+                className="w-9 h-9 rounded-full bg-white p-0.5 object-contain shadow-sm shrink-0"
+              />
+              <div className="min-w-0">
+                <h2 className="text-xs font-black tracking-wide truncate">
+                  PT. LAZ COAL MANDIRI
+                </h2>
+                <p className="text-[10px] text-blue-200 truncate">
+                  Portal TimeSheet • Site Arutmin Kintap
+                </p>
+              </div>
             </div>
-          )}
+            <span className="bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[9px] font-black px-2 py-0.5 rounded-full uppercase shrink-0">
+              1 Pintu
+            </span>
+          </div>
 
-          {successMsg && (
-            <div className="bg-blue-50 border border-blue-200 text-[#1e3a8a] text-xs p-3.5 rounded-2xl flex items-start space-x-2.5 animate-in fade-in">
-              <CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <div className="flex-1 font-bold">{successMsg}</div>
+          {/* Segmented Tab Toggle: Masuk vs Daftar */}
+          <div className="p-3.5 pb-0 sm:px-7 sm:pt-6">
+            <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('login');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                className={`py-2.5 text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                  activeTab === 'login'
+                    ? 'bg-[#1e3a8a] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Masuk (Login)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('register');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                className={`py-2.5 text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                  activeTab === 'register'
+                    ? 'bg-[#1e3a8a] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UserPlus className="w-3.5 h-3.5 text-amber-400" />
+                <span>Daftar Akun</span>
+              </button>
             </div>
-          )}
+          </div>
 
-          {/* ============================================================================== */}
-          {/* TAB 1: MASUK (LOGIN)                                                           */}
-          {/* ============================================================================== */}
-          {activeTab === 'login' && (
-            <div className="space-y-6">
-              
-              {/* METODE 1: FAST SCAN OCR BUTTON (LANGSUNG LOGIN TANPA PASSWORD) */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/60 p-4 sm:p-5 rounded-2xl border-2 border-blue-300 shadow-xs relative overflow-hidden">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <span className="inline-block bg-[#1e3a8a] text-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">
-                      Metode 1: Rekomendasi Cepat
-                    </span>
-                    <h4 className="text-sm font-black text-[#1e3a8a]">
-                      Scan Kartu Identitas (OCR) Tanpa Password
-                    </h4>
-                    <p className="text-[11px] text-blue-800 mt-0.5">
-                      Foto kartu Mine Permit / KTP di HP &rarr; Sistem membaca khusus NIK (misal: V.26141) &rarr; Langsung masuk sesuai role!
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-[#1e3a8a] text-amber-400 flex items-center justify-center shrink-0 shadow-md">
-                    <ScanLine className="w-6 h-6 animate-pulse" />
-                  </div>
-                </div>
+          {/* Form Body */}
+          <div className="p-4 sm:px-7 sm:py-5 space-y-3.5 flex-1">
+            
+            {/* Alert Messages */}
+            {errorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-800 text-[11px] sm:text-xs p-3 rounded-2xl flex items-start space-x-2 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium">{errorMsg}</div>
+              </div>
+            )}
 
+            {successMsg && (
+              <div className="bg-blue-50 border border-blue-200 text-[#1e3a8a] text-[11px] sm:text-xs p-3 rounded-2xl flex items-start space-x-2 animate-in fade-in">
+                <CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div className="flex-1 font-bold">{successMsg}</div>
+              </div>
+            )}
+
+            {/* ================================================================= */}
+            {/* TAB 1: MASUK (LOGIN) - SEDERHANA & PAS 1 LAYAR HP                 */}
+            {/* ================================================================= */}
+            {activeTab === 'login' && (
+              <div className="space-y-3.5">
+                {/* 1-Tap Scan OCR NIK Button (Ringkas 1 Baris) */}
                 <button
                   type="button"
                   onClick={() => {
@@ -386,269 +385,233 @@ export const AuthView = ({
                     cameraInputRef.current?.click();
                   }}
                   disabled={loading || ocrProcessing}
-                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-extrabold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 disabled:opacity-50"
+                  className="w-full bg-amber-50 hover:bg-amber-100 active:scale-[0.98] text-amber-950 font-extrabold text-xs py-3 px-4 rounded-2xl border border-amber-300/90 shadow-2xs transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                 >
-                  <Camera className="w-5 h-5 text-amber-400" />
-                  <span>Buka Kamera HP (Foto & Langsung Masuk)</span>
+                  <Camera className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Scan Kartu Identitas (Login Cepat OCR NIK)</span>
                 </button>
-              </div>
 
-              {/* PEMBATAS "ATAU" */}
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider absolute">
-                  Atau Gunakan NIK & Password
-                </span>
-              </div>
-
-              {/* METODE 2: LOGIN MANUAL (NIK + PASSWORD) */}
-              <form onSubmit={handleManualLogin} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nomor Induk Kependudukan (NIK) / No ID:
-                  </label>
-                  <div className="relative">
-                    <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <input
-                      type="text"
-                      value={loginNik}
-                      onChange={(e) => setLoginNik(e.target.value)}
-                      placeholder="Masukkan NIK Anda"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none transition"
-                      required
-                    />
-                  </div>
+                {/* Divider */}
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    atau masuk dengan NIK
+                  </span>
+                  <div className="flex-grow border-t border-slate-200"></div>
                 </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Password:
+                {/* Manual Login Form */}
+                <form onSubmit={handleManualLogin} className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      NIK Karyawan / Mine Permit
                     </label>
-                    <span className="text-[10px] text-slate-400">
-                      Password buatan sendiri
-                    </span>
+                    <div className="relative">
+                      <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <input
+                        type="text"
+                        value={loginNik}
+                        onChange={(e) => setLoginNik(e.target.value)}
+                        placeholder="Contoh: V.26141"
+                        className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                        required
+                      />
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Masukkan password Anda"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none transition"
-                      required
-                    />
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <input
+                        type="password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Masukkan password Anda"
+                        className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-2 focus:ring-blue-100 outline-none transition"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>{loading ? 'Memverifikasi...' : 'Masuk Sekarang'}</span>
-                </button>
-              </form>
-
-              {/* Catatan Privasi & Keamanan Hak Akses */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-[11px] text-slate-600 flex items-start space-x-2">
-                <ShieldAlert className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
-                <p>
-                  <strong>Batasan Hak Akses:</strong> Setiap akun terikat pada 1 role operasional (Operator Alat Berat hanya membuka lembar HE, Driver Dump Truck hanya membuka lembar DT, dan Admin membuka Dashboard).
-                </p>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#1e3a8a] hover:bg-[#172554] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold py-3 px-4 rounded-2xl shadow-md shadow-blue-900/15 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 mt-1"
+                  >
+                    <LogIn className="w-4 h-4 text-amber-300" />
+                    <span>{loading ? 'Memverifikasi...' : 'Masuk Sekarang'}</span>
+                  </button>
+                </form>
               </div>
+            )}
 
-            </div>
-          )}
-
-          {/* ============================================================================== */}
-          {/* TAB 2: REGISTRASI MANDIRI KARYAWAN (SELF-REGISTRATION)                          */}
-          {/* ============================================================================== */}
-          {activeTab === 'register' && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-950 space-y-2">
-                <div className="font-bold flex items-center space-x-1.5 text-[#1e3a8a]">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>Validasi Otomatis via OCR Tesseract:</span>
-                </div>
-                <p className="text-[11px] leading-relaxed text-blue-900">
-                  Gunakan kamera HP untuk memfoto Mine Permit / KTP Anda. Sistem otomatis memindai <strong>khusus NIK Karyawan</strong> (seperti contoh: V.26141) agar pendaftaran cepat & tepat.
-                </p>
-                
+            {/* ================================================================= */}
+            {/* TAB 2: REGISTRASI AKUN BARU (RINGKAS & BERSIH)                    */}
+            {/* ================================================================= */}
+            {activeTab === 'register' && (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+                {/* 1-Tap OCR Khusus NIK */}
                 <button
                   type="button"
                   onClick={() => {
                     setOcrMode('register');
                     cameraInputRef.current?.click();
                   }}
-                  disabled={ocrProcessing}
-                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition cursor-pointer"
+                  disabled={loading || ocrProcessing}
+                  className="w-full bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-[#1e3a8a] font-extrabold text-xs py-2.5 px-4 rounded-xl border border-blue-200 transition flex items-center justify-center space-x-2 cursor-pointer"
                 >
-                  <Camera className="w-4 h-4 text-amber-400" />
-                  <span>Buka Kamera HP (Pindai Khusus NIK Kartu)</span>
+                  <Camera className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>Scan Kartu untuk Isi NIK Otomatis</span>
                 </button>
-              </div>
 
-              {/* NIK Field */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Nomor Induk Kependudukan (NIK) / No ID Karyawan: <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    value={regNik}
-                    onChange={(e) => setRegNik(e.target.value)}
-                    placeholder="16 digit NIK atau kode identitas"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none"
-                    required
-                  />
-                </div>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">
-                  * Kolom NIK terkunci unik (UNIQUE) di database untuk mencegah duplikasi akun.
-                </span>
-              </div>
-
-              {/* Nama Lengkap */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Nama Lengkap Karyawan: <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Nama lengkap sesuai KTP / ID Card"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Pilihan Jabatan (Strict 1 Role) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Pilih Jabatan Pekerjaan (Dibatasi 1 Role Kerja): <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRegJabatan('Operator Alat Berat')}
-                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between overflow-hidden cursor-pointer ${
-                      regJabatan === 'Operator Alat Berat'
-                        ? 'bg-blue-50 border-[#1e3a8a] ring-2 ring-[#1e3a8a] shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="h-20 w-full rounded-xl overflow-hidden mb-2 bg-slate-100">
-                      <img src="/excavator-mining.webp" alt="Operator Alat Berat" className="w-full h-full object-cover" />
+                {/* NIK & Nama Lengkap */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      NIK Karyawan <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={regNik}
+                        onChange={(e) => setRegNik(e.target.value)}
+                        placeholder="Contoh: V.26141"
+                        className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
+                        required
+                      />
                     </div>
-                    <div className="flex items-center space-x-1.5">
-                      <HardHat className="w-4 h-4 text-[#1e3a8a] shrink-0" />
-                      <span className="text-xs font-black text-slate-900 leading-tight">Operator Alat Berat</span>
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-0.5">Excavator / Bulldozer</span>
-                  </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setRegJabatan('Driver Dump Truck')}
-                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between overflow-hidden cursor-pointer ${
-                      regJabatan === 'Driver Dump Truck'
-                        ? 'bg-amber-50 border-amber-600 ring-2 ring-amber-600 shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="h-20 w-full rounded-xl overflow-hidden mb-2 bg-slate-100">
-                      <img src="/dumptruck-cat777e.jpg" alt="Driver Dump Truck" className="w-full h-full object-cover" />
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Nama Lengkap <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder="Sesuai kartu identitas"
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
+                        required
+                      />
                     </div>
-                    <div className="flex items-center space-x-1.5">
-                      <Truck className="w-4 h-4 text-amber-700 shrink-0" />
-                      <span className="text-xs font-black text-slate-900 leading-tight">Driver Dump Truck</span>
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-0.5">DT Hauling & Ritase</span>
-                  </button>
+                  </div>
                 </div>
-                <span className="text-[10px] text-slate-500 mt-1.5 block">
-                  * Akun hanya berhak mengakses lembar time sheet sesuai jabatan yang dipilih.
-                </span>
-              </div>
 
-              {/* No WhatsApp / HP (Opsional) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  No. Handphone / WhatsApp:
-                </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <input
-                    type="tel"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="Contoh: 081234567890"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Buat Password Sendiri */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Pilihan Jabatan (Strict Role Lock) */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Buat Password Sendiri: <span className="text-red-500">*</span>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Jabatan / Role Kerja <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRegJabatan('Operator Alat Berat')}
+                      className={`p-2.5 rounded-xl border text-left transition flex items-center space-x-2 cursor-pointer ${
+                        regJabatan === 'Operator Alat Berat'
+                          ? 'bg-blue-50 border-[#1e3a8a] text-[#1e3a8a] ring-1 ring-[#1e3a8a]'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <HardHat className="w-4 h-4 shrink-0 text-[#1e3a8a]" />
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-extrabold truncate">Operator HE</div>
+                        <div className="text-[9px] text-slate-500 truncate">Alat Berat</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRegJabatan('Driver Dump Truck')}
+                      className={`p-2.5 rounded-xl border text-left transition flex items-center space-x-2 cursor-pointer ${
+                        regJabatan === 'Driver Dump Truck'
+                          ? 'bg-amber-50 border-amber-500 text-amber-950 ring-1 ring-amber-500'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Truck className="w-4 h-4 shrink-0 text-amber-600" />
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-extrabold truncate">Driver DT</div>
+                        <div className="text-[9px] text-slate-500 truncate">Dump Truck</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* No. Telepon (Opsional) */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    No. WhatsApp / HP <span className="text-slate-400 font-normal">(Opsional)</span>
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
-                      type="password"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="Password baru"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
-                      required
+                      type="tel"
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      placeholder="08xxxxxxxxxx"
+                      className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Ulangi Password: <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <input
-                      type="password"
-                      value={regConfirmPassword}
-                      onChange={(e) => setRegConfirmPassword(e.target.value)}
-                      placeholder="Ulangi password"
-                      className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
-                      required
-                    />
+                {/* Buat Password & Konfirmasi */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="password"
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="Buat sandi"
+                        className="w-full pl-8 pr-2.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Ulangi <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="password"
+                        value={regConfirmPassword}
+                        onChange={(e) => setRegConfirmPassword(e.target.value)}
+                        placeholder="Ulangi sandi"
+                        className="w-full pl-8 pr-2.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-[#1e3a8a] outline-none"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Tombol Simpan Registrasi */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs sm:text-sm font-bold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
-              >
-                <UserPlus className="w-4 h-4 text-amber-400" />
-                <span>{loading ? 'Mendaftarkan Akun...' : 'Daftar Akun Saya Sekarang'}</span>
-              </button>
+                {/* Tombol Submit Daftar */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#1e3a8a] hover:bg-[#172554] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold py-3 px-4 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                >
+                  <UserPlus className="w-4 h-4 text-amber-400" />
+                  <span>{loading ? 'Mendaftarkan...' : 'Daftar Akun Sekarang'}</span>
+                </button>
+              </form>
+            )}
 
-            </form>
-          )}
-
+          </div>
         </div>
-
       </div>
 
       {/* ========================================================================= */}
@@ -673,7 +636,6 @@ export const AuthView = ({
               </p>
             </div>
 
-            {/* Rincian Data Karyawan */}
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs space-y-2 font-medium">
               <div className="flex justify-between border-b border-slate-200 pb-1.5">
                 <span className="text-slate-500">Nama Lengkap:</span>
@@ -697,15 +659,11 @@ export const AuthView = ({
                 </div>
               )}
               <div className="flex justify-between pt-0.5">
-                <span className="text-slate-500">Status Data Admin:</span>
+                <span className="text-slate-500">Status Admin:</span>
                 <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                  ✓ Langsung Terdata di Admin
+                  ✓ Langsung Terdata
                 </span>
               </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[11px] text-blue-950">
-              <strong>Batasan Hak Akses:</strong> Akun Anda secara otomatis hanya berhak membuka <strong>Time Sheet {registeredUserConfirmation.jabatan}</strong> demi ketertiban data site.
             </div>
 
             <button
@@ -723,7 +681,6 @@ export const AuthView = ({
           </div>
         </div>
       )}
-      </div>
 
       {/* Input Kamera Default Bawaan HP (capture="environment") */}
       <input
@@ -735,20 +692,20 @@ export const AuthView = ({
         onChange={handleDirectCameraCapture}
       />
 
-      {/* Loading Overlay Saat OCR Membaca Foto dari Kamera HP */}
+      {/* Loading Overlay Saat OCR Membaca NIK dari Kamera HP */}
       {ocrProcessing && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-200">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto text-[#1e3a8a]">
-              <RefreshCw className="w-8 h-8 text-[#1e3a8a] animate-spin" />
+            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto text-[#1e3a8a]">
+              <RefreshCw className="w-7 h-7 text-[#1e3a8a] animate-spin" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-slate-900">Membaca Kartu Identitas</h3>
-              <p className="text-xs text-slate-500 mt-1">{ocrStatusText || 'Mengekstrak NIK & Nama...'}</p>
+              <h3 className="font-extrabold text-base text-slate-900">Membaca NIK Kartu</h3>
+              <p className="text-xs text-slate-500 mt-1">{ocrStatusText || 'Mengekstrak NIK...'}</p>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
               <div 
-                className="bg-[#1e3a8a] h-3 rounded-full transition-all duration-300 ease-out" 
+                className="bg-[#1e3a8a] h-2.5 rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${ocrProgress}%` }}
               />
             </div>

@@ -40,19 +40,17 @@ export function App() {
   const [isInstalled, setIsInstalled] = useState(checkIsInstalledPWA);
   const [isDesktop, setIsDesktop] = useState(checkIsDesktop);
 
-  // Aturan Tampilan Sesuai Permintaan:
+  // Aturan Tampilan:
   // 1. Kalo sudah diinstal PWA -> Langsung halaman login saja ('auth')
-  // 2. Dashboard publik profil perusahaan KHUSUS di browser desktop saja
-  // 3. Di mobile / installed -> Langsung halaman login ('auth')
+  // 2. Di browser HP maupun Laptop -> Dashboard sederhana 1 layar ('dashboard'), bisa pindah ke login via tombol / menu garis tiga
   const [authViewMode, setAuthViewMode] = useState(() => {
     const installed = checkIsInstalledPWA();
-    const desktop = checkIsDesktop();
-    if (installed || !desktop) return 'auth';
+    if (installed) return 'auth';
     return 'dashboard';
   });
 
   const [authTab, setAuthTab] = useState('login'); // 'login' | 'register'
-  const [autoTriggerOcr, setAutoTriggerOcr] = useState(false);
+  const [ocrTriggerCount, setOcrTriggerCount] = useState(0);
   const [cloudSyncedToast, setCloudSyncedToast] = useState(false);
 
   // State Sidebar Menu Samping Kiri untuk Admin (Desktop terbuka default, HP tertutup default)
@@ -69,8 +67,8 @@ export function App() {
       setIsInstalled(installed);
       setIsDesktop(desktop);
 
-      // Kalo sudah diinstal PWA atau layar mobile: pastikan selalu di halaman login saja
-      if (installed || !desktop) {
+      // Kalo sudah diinstal PWA: pastikan selalu mulai di halaman login
+      if (installed) {
         setAuthViewMode((prev) => (prev === 'dashboard' ? 'auth' : prev));
       }
     };
@@ -91,7 +89,7 @@ export function App() {
       setAuthViewMode('auth');
       setAuthTab('login');
       if (params.get('view') === 'ocr') {
-        setAutoTriggerOcr(true);
+        setOcrTriggerCount((c) => c + 1);
       }
     }
 
@@ -130,29 +128,26 @@ export function App() {
     }
   }, [currentUser]);
 
-  // Navigasi dari Dashboard ke Auth Portal
+  // Navigasi dari Dashboard / Menu Garis Tiga ke Auth Portal
   const handleNavigateToAuth = (tab = 'login') => {
     if (tab === 'ocr') {
       setAuthTab('login');
-      setAutoTriggerOcr(true);
+      setOcrTriggerCount((c) => c + 1);
     } else {
       setAuthTab(tab);
-      setAutoTriggerOcr(false);
     }
     setAuthViewMode('auth');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Kembali ke Dashboard Beranda (Khusus Browser Desktop Saja & Bukan PWA Terinstal)
+  // Kembali ke Dashboard Beranda Sederhana
   const handleBackToDashboard = () => {
-    // Jika PWA sudah diinstal atau bukan desktop, jangan izinkan ke landing dashboard (tetap di login)
-    if (isInstalled || !isDesktop) {
+    if (isInstalled) {
       setAuthViewMode('auth');
       setAuthTab('login');
       return;
     }
     setAuthViewMode('dashboard');
-    setAutoTriggerOcr(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -167,12 +162,10 @@ export function App() {
     setCurrentUser(null);
     localStorage.removeItem('lcm_logged_user');
 
-    // Jika PWA terinstal atau bukan desktop: langsung tetap di halaman login saja
-    if (isInstalled || !isDesktop) {
+    if (isInstalled) {
       setAuthViewMode('auth');
       setAuthTab('login');
     } else {
-      // Khusus browser desktop biasa: kembali ke dashboard beranda
       setAuthViewMode('dashboard');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -212,6 +205,7 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         authViewMode={authViewMode}
+        authTab={authTab}
         onNavigateToAuth={handleNavigateToAuth}
         onBackToDashboard={handleBackToDashboard}
         isInstalled={isInstalled}
@@ -221,19 +215,17 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 ${isAdmin && currentUser ? 'pb-0' : 'pb-12'}`}>
+      <main className={`flex-1 flex flex-col ${currentUser && !isAdmin ? 'pb-10' : 'pb-0'}`}>
         {!currentUser ? (
-          <div>
-            {/* Dashboard Publik Profil HANYA TAMPIL di Desktop Browser & Belum Diinstal */}
-            {authViewMode === 'dashboard' && isDesktop && !isInstalled ? (
-              <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-                <PublicDashboard onNavigateToAuth={handleNavigateToAuth} />
-              </div>
+          <div className="flex-1 flex flex-col">
+            {/* Dashboard Publik Sederhana 1 Layar (HP & Desktop) - PWA Terinstal Langsung Login */}
+            {authViewMode === 'dashboard' && !isInstalled ? (
+              <PublicDashboard onNavigateToAuth={handleNavigateToAuth} />
             ) : (
               <AuthView 
                 onLoginSuccess={handleLoginSuccess}
                 initialTab={authTab}
-                initialTriggerOcr={autoTriggerOcr}
+                ocrTriggerCount={ocrTriggerCount}
                 onBackToDashboard={handleBackToDashboard}
                 isInstalledPWA={isInstalled}
                 isDesktop={isDesktop}
@@ -241,7 +233,7 @@ export function App() {
             )}
           </div>
         ) : (
-          <div>
+          <div className="flex-1">
             {/* JIKA OPERATOR: HANYA FORM ALAT BERAT */}
             {isOperator && (
               <HeavyEquipmentForm currentUser={currentUser} onLogout={handleLogout} />
@@ -264,15 +256,15 @@ export function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 space-y-1">
-          <p className="font-extrabold text-[#1e3a8a]">
+      {/* Compact Footer (Sembunyikan di mobile saat halaman dashboard/login agar pas 1 layar penuh) */}
+      <footer className={`bg-white border-t border-slate-200 py-3.5 text-center text-xs text-slate-500 ${!currentUser ? 'hidden sm:block' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px]">
+          <span className="font-extrabold text-[#1e3a8a]">
             LCM TimeSheet Digital • PT. LAZ COAL MANDIRI
-          </p>
-          <p className="text-[11px] text-slate-400">
-            Site Arutmin Indonesia - Kintap, Kalimantan Selatan • Sistem Pencatatan Jam Kerja & Ritase Tambang Batubara
-          </p>
+          </span>
+          <span className="text-slate-400">
+            Site Arutmin Indonesia - Kintap, Kalimantan Selatan
+          </span>
         </div>
       </footer>
 
