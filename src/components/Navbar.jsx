@@ -8,7 +8,8 @@ import {
   UserCheck,
   Building2,
   LogIn,
-  UserPlus
+  UserPlus,
+  Menu
 } from 'lucide-react';
 
 export const Navbar = ({ 
@@ -20,7 +21,9 @@ export const Navbar = ({
   onNavigateToAuth,
   onBackToDashboard,
   isInstalled = false,
-  isDesktop = true
+  isDesktop = true,
+  adminSidebarOpen = false,
+  onToggleAdminSidebar
 }) => {
   const isOperator = currentUser?.role === 'operator' || currentUser?.jabatan?.includes('Alat Berat');
   const isDriver = currentUser?.role === 'driver' || currentUser?.jabatan?.includes('Dump Truck');
@@ -49,32 +52,51 @@ export const Navbar = ({
       </div>
 
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className={currentUser && isAdmin ? 'w-full px-3 sm:px-5 lg:px-6' : 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'}>
         <div className="flex justify-between items-center h-14 sm:h-16">
           
-          {/* Logo & System Title */}
-          <div 
-            onClick={!currentUser && !isInstalled && isDesktop && onBackToDashboard ? onBackToDashboard : undefined}
-            className={`flex items-center space-x-2 sm:space-x-3 select-none ${!currentUser && !isInstalled && isDesktop ? 'cursor-pointer hover:opacity-90 transition' : ''}`}
-            title={!currentUser && !isInstalled && isDesktop ? 'Klik untuk kembali ke Beranda & Profil PT. LCM' : undefined}
-          >
-            <img 
-              src="/lcm-logo.png" 
-              alt="Logo PT. LAZ COAL MANDIRI" 
-              className="w-9 h-9 sm:w-11 sm:h-11 object-contain rounded-full shadow-sm border border-slate-200 shrink-0"
-            />
-            <div>
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <h1 className="text-sm sm:text-lg font-black text-[#1e3a8a] tracking-tight leading-tight">
-                  LCM TimeSheet
-                </h1>
-                <span className="bg-blue-100 text-[#1e3a8a] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded border border-blue-200">
-                  DIGITAL
-                </span>
+          {/* Left Group: Hamburger Menu (Admin Only) + Logo & System Title */}
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            {currentUser && isAdmin && onToggleAdminSidebar && (
+              <button
+                type="button"
+                onClick={onToggleAdminSidebar}
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 active:scale-95 touch-manipulation border shadow-2xs ${
+                  adminSidebarOpen
+                    ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] hover:bg-[#172554]'
+                    : 'bg-blue-50 text-[#1e3a8a] border-blue-200 hover:bg-blue-100'
+                }`}
+                title={adminSidebarOpen ? 'Tutup Menu Samping' : 'Buka Menu Samping'}
+                aria-label="Toggle Menu Samping Admin"
+                aria-expanded={adminSidebarOpen}
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+
+            <div 
+              onClick={!currentUser && !isInstalled && isDesktop && onBackToDashboard ? onBackToDashboard : undefined}
+              className={`flex items-center space-x-2 sm:space-x-3 select-none min-w-0 ${!currentUser && !isInstalled && isDesktop ? 'cursor-pointer hover:opacity-90 transition' : ''}`}
+              title={!currentUser && !isInstalled && isDesktop ? 'Klik untuk kembali ke Beranda & Profil PT. LCM' : undefined}
+            >
+              <img 
+                src="/lcm-logo.png" 
+                alt="Logo PT. LAZ COAL MANDIRI" 
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-full shadow-sm border border-slate-200 shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <h1 className="text-sm sm:text-lg font-black text-[#1e3a8a] tracking-tight leading-tight truncate">
+                    LCM TimeSheet
+                  </h1>
+                  <span className="bg-blue-100 text-[#1e3a8a] text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded border border-blue-200 shrink-0">
+                    DIGITAL
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate max-w-[140px] sm:max-w-none">
+                  Pencatatan Jam Kerja & Ritase Operasional
+                </p>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate max-w-[170px] sm:max-w-none">
-                Pencatatan Jam Kerja & Ritase Operasional
-              </p>
             </div>
           </div>
 
@@ -200,20 +222,6 @@ export const Navbar = ({
           </div>
           <span className="text-[11px] text-slate-500 font-mono flex items-center space-x-1">
             <Lock className="w-3 h-3 text-slate-400" />
-            <span>Role Terkunci</span>
-          </span>
-        </div>
-      )}
-
-      {/* Mobile Single Role Banner for Admin */}
-      {currentUser && isAdmin && (
-        <div className="md:hidden flex items-center justify-between border-t border-slate-200 bg-purple-50/70 px-4 py-2 text-xs">
-          <div className="flex items-center space-x-2 font-bold text-purple-950">
-            <ShieldCheck className="w-4 h-4 text-purple-700" />
-            <span>Dashboard Admin Site</span>
-          </div>
-          <span className="text-[11px] text-purple-700 font-mono flex items-center space-x-1">
-            <Lock className="w-3 h-3 text-purple-500" />
             <span>Role Terkunci</span>
           </span>
         </div>

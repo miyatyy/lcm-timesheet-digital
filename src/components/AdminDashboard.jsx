@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, 
   Table, 
@@ -31,7 +31,10 @@ import {
   Copy,
   QrCode,
   RefreshCw,
-  Radio
+  Radio,
+  Menu,
+  PanelLeftClose,
+  ChevronRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -50,8 +53,9 @@ import { exportDatabaseHMToExcel } from '../lib/exportExcel';
 import { exportDatabaseHMToWord } from '../lib/exportWord';
 import { printHEDailyPDF, printDTDailyPDF, exportMonthlyBackupPDF } from '../lib/exportPdf';
 
-export const AdminDashboard = ({ currentUser }) => {
-  const [activeTab, setActiveTab] = useState('rekap'); // 'rekap' | 'karyawan' | 'backup'
+export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebarOpen }) => {
+  const [activeTab, setActiveTab] = useState('rekap'); // 'rekap' | 'bukti' | 'karyawan' | 'backup'
+  const touchStartXRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [heList, setHeList] = useState([]);
   const [dtList, setDtList] = useState([]);
@@ -150,6 +154,30 @@ export const AdminDashboard = ({ currentUser }) => {
       clearInterval(pollInterval);
     };
   }, []);
+
+  // Kunci scroll halaman saat drawer sidebar terbuka di HP & tutup via tombol Escape
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile = window.innerWidth < 1024;
+    if (isSidebarOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedPhotoModal) setSelectedPhotoModal(null);
+        else if (configModalOpen) setConfigModalOpen(false);
+        else if (isSidebarOpen && window.innerWidth < 1024 && setIsSidebarOpen) setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSidebarOpen, selectedPhotoModal, configModalOpen, setIsSidebarOpen]);
 
   // Handler Tes Koneksi Supabase
   const handleTestConnection = async () => {
@@ -335,175 +363,364 @@ export const AdminDashboard = ({ currentUser }) => {
     }
   };
 
+  // Handler pilih menu sidebar (otomatis tutup drawer di HP agar rapi)
+  const handleSelectSidebarTab = (tabId) => {
+    setActiveTab(tabId);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && setIsSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handler gesture geser (swipe left) untuk tutup sidebar mulus di HP
+  const handleSidebarTouchStart = (e) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleSidebarTouchEnd = (e) => {
+    if (touchStartXRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (deltaX < -55 && setIsSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  // Judul dinamis halaman aktif di area konten utama
+  const activeSectionMeta = {
+    rekap: {
+      title: 'Database HM Unit',
+      subtitle: 'Rekapitulasi jam kerja (HM) alat berat & hauling dump truck secara realtime'
+    },
+    bukti: {
+      title: 'Bukti Kertas HM Fisik',
+      subtitle: 'Inspeksi langsung foto kertas timesheet & slip ritase seluruh karyawan'
+    },
+    karyawan: {
+      title: 'Daftar Karyawan Mandiri',
+      subtitle: 'Manajemen akun karyawan terdaftar resmi & kontrol reset sandi'
+    },
+    backup: {
+      title: 'Auto-Backup & Reset Bulanan',
+      subtitle: 'Arsipkan laporan bulanan PDF & optimalkan kapasitas database setiap tanggal 1'
+    }
+  }[activeTab] || { title: 'Dashboard Admin', subtitle: 'Pusat Kendali Operasional Site Kintap' };
+
+  const sidebarNavItems = [
+    {
+      id: 'rekap',
+      label: 'Database HM Unit',
+      desc: 'Tabel rekap & ekspor',
+      icon: Table,
+      badge: null,
+      accent: 'blue'
+    },
+    {
+      id: 'bukti',
+      label: 'Bukti Kertas HM',
+      desc: 'Inspeksi foto fisik',
+      icon: Camera,
+      badge: totalReportsWithPhoto,
+      accent: 'emerald'
+    },
+    {
+      id: 'karyawan',
+      label: 'Daftar Karyawan',
+      desc: 'Akun & reset sandi',
+      icon: Users,
+      badge: employees.length,
+      accent: 'blue'
+    },
+    {
+      id: 'backup',
+      label: 'Auto-Backup & Reset',
+      desc: 'Arsip PDF tgl 1',
+      icon: RotateCcw,
+      badge: 'Tgl 1',
+      accent: 'amber'
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-6">
+    <div className="flex min-h-[calc(100vh-92px)] relative bg-[#F8FAFC]">
       
-      {/* Role Visual Banner: Admin Dashboard (Site Management & Fleet Overview) */}
-      <div className="relative h-40 sm:h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
-        <img 
-          src="/excavator-mining.webp" 
-          alt="Operasional Tambang PT. LAZ COAL MANDIRI" 
-          className="w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent flex items-center p-5 sm:p-7">
-          <div className="text-white space-y-1.5">
-            <div className="flex items-center space-x-2">
-              <span className="bg-[#1e3a8a] text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider border border-amber-400/40 shadow-xs">
-                Role: Administrator Site
-              </span>
-              <span className="bg-white/20 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full backdrop-blur-xs">
-                Site Arutmin Kintap
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md">
-              Dashboard Monitoring & Database HM Unit
-            </h2>
-            <p className="text-xs text-blue-100 font-medium max-w-lg">
-              Rekapitulasi Jam Kerja (HM) Alat Berat, Hauling Dump Truck, Ekspor Excel/Word/PDF, dan Manajemen Akun Karyawan
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* ========================================================================= */}
+      {/* BACKDROP OVERLAY MOBILE (SMOOTH FADE)                                     */}
+      {/* ========================================================================= */}
+      <div
+        onClick={() => setIsSidebarOpen && setIsSidebarOpen(false)}
+        className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[2px] lg:hidden transition-opacity duration-300 ease-in-out ${
+          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden="true"
+      />
 
       {/* ========================================================================= */}
-      {/* REALTIME SYNC & CLOUD CONNECTION STATUS STRIP                             */}
+      {/* LEFT COLLAPSIBLE SIDEBAR (SMOOTH SLIDE BUKA/TUTUP DESKTOP & MOBILE)       */}
       {/* ========================================================================= */}
-      <div className={`p-4 sm:p-5 rounded-3xl border shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5 transition ${
-        isCloudConnected 
-          ? 'bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-emerald-300 text-emerald-950'
-          : 'bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border-amber-300 text-amber-950'
-      }`}>
-        <div className="flex items-start sm:items-center space-x-3.5">
-          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
-            isCloudConnected ? 'bg-emerald-600 text-white shadow-md' : 'bg-amber-500 text-slate-950 shadow-md'
-          }`}>
-            {isCloudConnected ? <Radio className="w-5 h-5 animate-pulse" /> : <WifiOff className="w-5 h-5" />}
+      <aside
+        onTouchStart={handleSidebarTouchStart}
+        onTouchEnd={handleSidebarTouchEnd}
+        className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 shadow-2xl lg:shadow-none lg:sticky lg:top-[92px] lg:h-[calc(100vh-92px)] lg:z-30 overflow-hidden shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          isSidebarOpen
+            ? 'w-[280px] max-w-[85vw] lg:w-72 translate-x-0 opacity-100 pointer-events-auto'
+            : 'w-[280px] max-w-[85vw] -translate-x-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:border-r-0 pointer-events-none'
+        }`}
+        aria-label="Menu Samping Admin"
+      >
+        <div className="w-[280px] max-w-[85vw] lg:w-72 h-full flex flex-col bg-white overflow-y-auto">
+          
+          {/* Sidebar Brand Header */}
+          <div className="p-4 border-b border-slate-200/80 bg-gradient-to-br from-[#1e3a8a] via-[#1e3a8a] to-[#172554] text-white flex items-center justify-between">
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <img
+                src="/lcm-logo.png"
+                alt="Logo LCM"
+                className="w-10 h-10 rounded-full object-contain bg-white p-0.5 shadow-md shrink-0"
+              />
+              <div className="min-w-0">
+                <h2 className="text-xs font-black tracking-wide uppercase truncate">
+                  PT. LAZ COAL MANDIRI
+                </h2>
+                <div className="flex items-center space-x-1.5 mt-0.5">
+                  <span className="bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[9px] font-black px-1.5 py-0.2 rounded-md uppercase tracking-wider">
+                    Admin Panel
+                  </span>
+                  <span className="text-[10px] text-blue-200 truncate">Site Kintap</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen && setIsSidebarOpen(false)}
+              className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition cursor-pointer shrink-0"
+              title="Tutup Menu Samping"
+            >
+              <X className="w-4 h-4 lg:hidden" />
+              <PanelLeftClose className="w-4 h-4 hidden lg:block" />
+            </button>
           </div>
-          <div className="space-y-0.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs sm:text-sm font-black">
-                {isCloudConnected ? 'Database Cloud Supabase Terhubung (Realtime Online)' : 'Mode Offline / LocalStorage Lokal'}
+
+          {/* Sidebar Navigation Menu */}
+          <div className="p-3.5 flex-1 space-y-5">
+            <div className="space-y-1.5">
+              <div className="px-2.5 pb-1 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Menu Navigasi
+                </span>
+                <span className="text-[9px] font-bold text-slate-400 lg:hidden">
+                  Geser kiri tutup
+                </span>
+              </div>
+
+              {sidebarNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleSelectSidebarTab(item.id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-2xl transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98] ${
+                      isActive
+                        ? 'bg-[#1e3a8a] text-white shadow-md shadow-blue-900/15'
+                        : item.accent === 'amber'
+                          ? 'bg-amber-50/70 hover:bg-amber-100/80 text-amber-950 border border-amber-200/70'
+                          : 'text-slate-700 hover:bg-slate-100/90'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition ${
+                        isActive
+                          ? 'bg-white/15 text-amber-300'
+                          : item.accent === 'amber'
+                            ? 'bg-amber-200/70 text-amber-800'
+                            : item.accent === 'emerald'
+                              ? 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
+                              : 'bg-blue-50 text-[#1e3a8a] group-hover:bg-blue-100'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className={`text-xs font-extrabold truncate ${isActive ? 'text-white' : 'text-slate-800'}`}>
+                          {item.label}
+                        </div>
+                        <div className={`text-[10px] truncate ${isActive ? 'text-blue-200' : 'text-slate-400'}`}>
+                          {item.desc}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-1 shrink-0 ml-2">
+                      {item.badge !== null && (
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          isActive
+                            ? 'bg-amber-400 text-slate-950'
+                            : item.accent === 'amber'
+                              ? 'bg-amber-200 text-amber-900'
+                              : 'bg-slate-200/80 text-slate-700'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                      {isActive && <ChevronRight className="w-3.5 h-3.5 text-amber-300" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ================================================================= */}
+            {/* WIDGET STATUS DATABASE CLOUD & SINKRONISASI REALTIME DI SIDEBAR   */}
+            {/* ================================================================= */}
+            <div className="space-y-2 pt-2 border-t border-slate-200/80">
+              <span className="px-2.5 text-[10px] font-black uppercase tracking-widest text-slate-400 block">
+                Database Cloud Realtime
               </span>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase border ${
-                isCloudConnected 
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
-                  : 'bg-amber-200 text-amber-900 border-amber-400'
+
+              <div className={`p-3.5 rounded-2xl border space-y-3 transition ${
+                isCloudConnected
+                  ? 'bg-gradient-to-br from-emerald-50 via-teal-50/70 to-blue-50/50 border-emerald-200'
+                  : 'bg-gradient-to-br from-amber-50 via-orange-50/80 to-red-50/50 border-amber-300'
               }`}>
-                {isCloudConnected ? '🟢 Live Sync Aktif' : '⚠️ Data Terisolasi di HP'}
-              </span>
+                <div className="flex items-start space-x-2.5">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                    isCloudConnected ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-slate-950'
+                  }`}>
+                    {isCloudConnected ? <Radio className="w-4 h-4 animate-pulse" /> : <WifiOff className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center space-x-1.5">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                      <span className={`text-[11px] font-black truncate ${isCloudConnected ? 'text-emerald-950' : 'text-amber-950'}`}>
+                        {isCloudConnected ? 'Live Sync Aktif' : 'Mode Offline Lokal'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-600 mt-0.5 leading-snug">
+                      {isCloudConnected
+                        ? `Auto-Poll 4s • Update: ${lastRefreshedAt}`
+                        : 'Data masih tersimpan lokal di perangkat. Hubungkan Supabase.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tombol Aksi Cloud */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => loadData(true)}
+                    disabled={isRefreshing}
+                    className="bg-white hover:bg-slate-50 active:scale-95 text-slate-800 text-[11px] font-bold py-2 px-2.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-center space-x-1.5 transition cursor-pointer"
+                    title="Segarkan data terbaru"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>Segarkan</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfigModalOpen(true);
+                      if (typeof window !== 'undefined' && window.innerWidth < 1024 && setIsSidebarOpen) {
+                        setIsSidebarOpen(false);
+                      }
+                    }}
+                    className={`text-[11px] font-extrabold py-2 px-2.5 rounded-xl shadow-xs flex items-center justify-center space-x-1 transition cursor-pointer active:scale-95 ${
+                      isCloudConnected
+                        ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                        : 'bg-amber-500 hover:bg-amber-600 text-slate-950 animate-pulse'
+                    }`}
+                  >
+                    <Settings className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{isCloudConnected ? 'Kelola DB' : 'Hubungkan'}</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <p className="text-[11px] text-slate-600 leading-relaxed max-w-2xl">
-              {isCloudConnected
-                ? `Data time sheet & foto kertas HM dari HP karyawan otomatis masuk ke layar admin ini dalam hitungan detik tanpa perlu refresh (Auto-Poll 4s • Update terakhir: ${lastRefreshedAt}).`
-                : 'PENTING: Agar data dan foto lembar kerja dari HP karyawan bisa terkirim ke laptop admin, hubungkan URL & Anon Key Supabase di bawah.'}
-            </p>
+          </div>
+
+          {/* Sidebar Footer: Profil Admin Singkat */}
+          <div className="p-3.5 border-t border-slate-200/80 bg-slate-50/80">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#1e3a8a] text-amber-300 flex items-center justify-center font-black text-xs shrink-0">
+                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] font-extrabold text-slate-900 truncate">
+                  {currentUser?.name || 'Admin Site'}
+                </div>
+                <div className="text-[10px] font-mono text-slate-500 truncate">
+                  NIK: {currentUser?.nik || 'ADMIN01'} • Role Terkunci
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ========================================================================= */}
+      {/* AREA KONTEN UTAMA DASHBOARD ADMIN (BERSIH, LEGA, RESPONSIF)               */}
+      {/* ========================================================================= */}
+      <div className="flex-1 min-w-0 p-3 sm:p-5 lg:p-6 pb-12 space-y-5 transition-all duration-300">
+        
+        {/* Compact Clean Section Header */}
+        <div className="bg-white rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 shadow-xs border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
+            {!isSidebarOpen && setIsSidebarOpen && (
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="hidden lg:flex w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] border border-blue-200 items-center justify-center transition cursor-pointer shrink-0 active:scale-95"
+                title="Buka Menu Samping"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
+                  {activeSectionMeta.title}
+                </h2>
+                <span className="hidden sm:inline-block bg-blue-50 text-[#1e3a8a] text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-blue-200">
+                  PT. LCM Kintap
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                {activeSectionMeta.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Indikator Live Sync Ringkas di Pojok Kanan Header */}
+          <div className="flex items-center space-x-2 self-end sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setConfigModalOpen(true)}
+              className={`inline-flex items-center space-x-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer active:scale-95 ${
+                isCloudConnected
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+              }`}
+              title="Pengaturan Database Cloud & QR Sinkronisasi HP"
+            >
+              <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+              <span>{isCloudConnected ? `Live • ${lastRefreshedAt}` : 'Offline • Hubungkan'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => loadData(true)}
+              disabled={isRefreshing}
+              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer active:scale-95"
+              title="Segarkan Data Terbaru"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center space-x-2 w-full md:w-auto justify-end shrink-0">
-          <button
-            type="button"
-            onClick={() => loadData(true)}
-            disabled={isRefreshing}
-            className="bg-white hover:bg-slate-50 active:scale-98 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl border border-slate-300 shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
-            title="Segarkan data terbaru secara manual"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Segarkan</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setConfigModalOpen(true)}
-            className={`text-xs font-black px-3.5 py-2 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer active:scale-98 ${
-              isCloudConnected 
-                ? 'bg-emerald-700 hover:bg-emerald-800 text-white' 
-                : 'bg-amber-500 hover:bg-amber-600 text-slate-950 animate-pulse'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{isCloudConnected ? 'Kelola Database' : 'Hubungkan Supabase'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Top Banner Header */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-card border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center space-x-3.5">
-          <img 
-            src="/lcm-logo.png" 
-            alt="Logo LCM" 
-            className="w-12 h-12 rounded-full object-contain shadow-md border border-slate-200"
-          />
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                PT. LAZ COAL MANDIRI
-              </h2>
-              <span className="bg-blue-100 text-[#1e3a8a] text-xs font-bold px-2 py-0.5 rounded-full border border-blue-300">
-                DATABASE HM UNIT
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Site Arutmin Indonesia, Kintap (Kalimantan Selatan) • Pusat Kendali Data Operasional
-            </p>
-          </div>
-        </div>
-
-        {/* Tab Buttons Admin */}
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setActiveTab('rekap')}
-            className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
-              activeTab === 'rekap'
-                ? 'bg-[#1e3a8a] text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Table className="w-4 h-4" />
-            <span>Database HM Unit</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('bukti')}
-            className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
-              activeTab === 'bukti'
-                ? 'bg-[#1e3a8a] text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Camera className="w-4 h-4 text-amber-400" />
-            <span>Bukti Kertas HM ({totalReportsWithPhoto})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('karyawan')}
-            className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
-              activeTab === 'karyawan'
-                ? 'bg-[#1e3a8a] text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Karyawan ({employees.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('backup')}
-            className={`flex-1 md:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
-              activeTab === 'backup'
-                ? 'bg-[#1e3a8a] text-white shadow-xs'
-                : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
-            }`}
-          >
-            <RotateCcw className="w-4 h-4 text-amber-600" />
-            <span>Auto-Backup & Reset Tgl 1</span>
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Stats Strip */}
+        {/* KPI Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold">
@@ -1696,6 +1913,7 @@ export const AdminDashboard = ({ currentUser }) => {
         </div>
       )}
 
+      </div>
     </div>
   );
 };

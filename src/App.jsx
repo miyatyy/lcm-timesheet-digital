@@ -55,6 +55,12 @@ export function App() {
   const [autoTriggerOcr, setAutoTriggerOcr] = useState(false);
   const [cloudSyncedToast, setCloudSyncedToast] = useState(false);
 
+  // State Sidebar Menu Samping Kiri untuk Admin (Desktop terbuka default, HP tertutup default)
+  const [adminSidebarOpen, setAdminSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1024;
+  });
+
   // Deteksi perubahan ukuran layar & event instalasi PWA
   useEffect(() => {
     const updateEnvironment = () => {
@@ -210,10 +216,12 @@ export function App() {
         onBackToDashboard={handleBackToDashboard}
         isInstalled={isInstalled}
         isDesktop={isDesktop}
+        adminSidebarOpen={adminSidebarOpen}
+        onToggleAdminSidebar={() => setAdminSidebarOpen((prev) => !prev)}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-12">
+      <main className={`flex-1 ${isAdmin && currentUser ? 'pb-0' : 'pb-12'}`}>
         {!currentUser ? (
           <div>
             {/* Dashboard Publik Profil HANYA TAMPIL di Desktop Browser & Belum Diinstal */}
@@ -247,7 +255,9 @@ export function App() {
             {/* JIKA ADMIN: HANYA DASHBOARD MONITORING & REKAP ADMIN (DIBATASI, TIDAK BISA BUKA FORM KARYAWAN) */}
             {isAdmin && (
               <AdminDashboard 
-                currentUser={currentUser} 
+                currentUser={currentUser}
+                isSidebarOpen={adminSidebarOpen}
+                setIsSidebarOpen={setAdminSidebarOpen}
               />
             )}
           </div>
