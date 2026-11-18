@@ -93,9 +93,6 @@ export const PWAInstallPrompt = () => {
               <span className="text-xs font-black tracking-tight text-white">
                 Pasang Aplikasi LCM TimeSheet di HP
               </span>
-              <span className="bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">
-                PWA
-              </span>
             </div>
             <p className="text-[11px] text-blue-100">
               {isIOS 

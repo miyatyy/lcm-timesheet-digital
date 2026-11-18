@@ -131,6 +131,17 @@ export const testSupabaseConnection = async (url, anonKey) => {
   }
 };
 
+// Uji koneksi menggunakan konfigurasi server aktif tanpa mengekspos URL/Key ke UI
+export const testActiveSupabaseConnection = async () => {
+  if (!isSupabaseConfigured()) {
+    return {
+      success: false,
+      message: 'Server cloud belum terkonfigurasi di environment server.'
+    };
+  }
+  return testSupabaseConnection(currentConfig.url, currentConfig.anonKey);
+};
+
 // ==============================================================================
 // LOCAL STORAGE SEED & REPOSITORY LAYER (HYBRID FALLBACK)
 // AKUN DUMMY DIHILANGKAN TOTAL - HANYA AKUN RESMI ADMIN01 & KARYAWAN AKTIF

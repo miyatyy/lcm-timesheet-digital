@@ -25,11 +25,8 @@ import {
   Image as ImageIcon,
   ExternalLink,
   X,
-  Settings,
-  Wifi,
+  Lock,
   WifiOff,
-  Copy,
-  QrCode,
   RefreshCw,
   Radio,
   PanelLeftClose,
@@ -42,10 +39,7 @@ import {
   employeeRepo, 
   monthlyResetService, 
   isSupabaseConfigured,
-  getSupabaseConfig,
-  saveSupabaseConfig,
-  clearSupabaseConfig,
-  testSupabaseConnection,
+  testActiveSupabaseConnection,
   supabase
 } from '../lib/supabase';
 import { exportDatabaseHMToExcel } from '../lib/exportExcel';
@@ -82,16 +76,13 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
   const [resetLoading, setResetLoading] = useState(false);
   const [resetFeedback, setResetFeedback] = useState(null);
 
-  // Cloud Database (Supabase) Connection & Realtime Sync State
+  // Cloud Database Connection & Realtime Sync State (Kredensial disembunyikan demi keamanan)
   const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConfigured());
   const [configModalOpen, setConfigModalOpen] = useState(false);
-  const [cfgUrl, setCfgUrl] = useState(getSupabaseConfig().url || '');
-  const [cfgKey, setCfgKey] = useState(getSupabaseConfig().anonKey || '');
   const [testingConnection, setTestingConnection] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(new Date().toLocaleTimeString('id-ID'));
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
 
   // Load Data (mendukung silent refresh agar tidak flicker saat auto-poll realtime)
   const loadData = async (showLoadingSpinner = true) => {
@@ -178,60 +169,18 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
     };
   }, [isSidebarOpen, selectedPhotoModal, configModalOpen, setIsSidebarOpen]);
 
-  // Handler Tes Koneksi Supabase
+  // Handler Tes Status Koneksi Server Cloud (Tanpa Menampilkan URL/API Key)
   const handleTestConnection = async () => {
     setTestingConnection(true);
     setTestResult(null);
     try {
-      const res = await testSupabaseConnection(cfgUrl, cfgKey);
+      const res = await testActiveSupabaseConnection();
       setTestResult(res);
+      setIsCloudConnected(isSupabaseConfigured());
     } catch (err) {
-      setTestResult({ success: false, message: err.message || 'Gagal tes koneksi' });
+      setTestResult({ success: false, message: err.message || 'Gagal menguji koneksi server' });
     } finally {
       setTestingConnection(false);
-    }
-  };
-
-  // Handler Simpan Konfigurasi Supabase
-  const handleSaveConnection = () => {
-    if (!cfgUrl.trim() || !cfgKey.trim()) {
-      alert('Harap isi URL Supabase dan Anon Key');
-      return;
-    }
-    const success = saveSupabaseConfig(cfgUrl, cfgKey);
-    setIsCloudConnected(isSupabaseConfigured());
-    if (success) {
-      setTestResult({ success: true, message: 'Konfigurasi berhasil disimpan! Memuat ulang data...' });
-      loadData(true);
-      setTimeout(() => {
-        setConfigModalOpen(false);
-      }, 1500);
-    } else {
-      setTestResult({ success: false, message: 'Gagal inisialisasi client Supabase dengan URL/Key tersebut.' });
-    }
-  };
-
-  // URL Sinkronisasi HP
-  const hpSyncUrl = typeof window !== 'undefined' && cfgUrl && cfgKey
-    ? `${window.location.origin}/?sb_url=${encodeURIComponent(cfgUrl)}&sb_key=${encodeURIComponent(cfgKey)}`
-    : '';
-
-  const handleCopyHpSyncUrl = () => {
-    if (!hpSyncUrl) return;
-    navigator.clipboard.writeText(hpSyncUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 3000);
-  };
-
-  const handleClearConnection = () => {
-    if (window.confirm('Apakah Anda yakin ingin memutuskan koneksi Supabase dan kembali ke mode LocalStorage offline?')) {
-      clearSupabaseConfig();
-      setCfgUrl('');
-      setCfgKey('');
-      setIsCloudConnected(false);
-      setTestResult(null);
-      loadData(true);
-      setConfigModalOpen(false);
     }
   };
 
@@ -624,6 +573,7 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
                   <button
                     type="button"
                     onClick={() => {
+                      setTestResult(null);
                       setConfigModalOpen(true);
                       if (typeof window !== 'undefined' && window.innerWidth < 1024 && setIsSidebarOpen) {
                         setIsSidebarOpen(false);
@@ -632,11 +582,11 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
                     className={`text-[11px] font-extrabold py-2 px-2.5 rounded-xl shadow-xs flex items-center justify-center space-x-1 transition cursor-pointer active:scale-95 ${
                       isCloudConnected
                         ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
-                        : 'bg-amber-500 hover:bg-amber-600 text-slate-950 animate-pulse'
+                        : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
                     }`}
                   >
-                    <Settings className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{isCloudConnected ? 'Kelola DB' : 'Hubungkan'}</span>
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Status Server</span>
                   </button>
                 </div>
               </div>
@@ -689,16 +639,19 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
           <div className="flex items-center space-x-2 self-end sm:self-auto shrink-0">
             <button
               type="button"
-              onClick={() => setConfigModalOpen(true)}
+              onClick={() => {
+                setTestResult(null);
+                setConfigModalOpen(true);
+              }}
               className={`inline-flex items-center space-x-1.5 text-[11px] font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer active:scale-95 ${
                 isCloudConnected
                   ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
               }`}
-              title="Pengaturan Database Cloud & QR Sinkronisasi HP"
+              title="Status Koneksi Server Cloud"
             >
               <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
-              <span>{isCloudConnected ? `Live • ${lastRefreshedAt}` : 'Offline • Hubungkan'}</span>
+              <span>{isCloudConnected ? `Live • ${lastRefreshedAt}` : 'Mode Lokal'}</span>
             </button>
 
             <button
@@ -1695,29 +1648,29 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL PENGATURAN SUPABASE & SINKRONISASI REALTIME HP                     */}
+      {/* MODAL STATUS SERVER & KEAMANAN DATABASE (KREDENSIAL DISEMBUNYIKAN)        */}
       {/* ========================================================================= */}
       {configModalOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in"
           onClick={() => setConfigModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-3xl max-w-2xl w-full my-auto overflow-hidden shadow-2xl border border-slate-200"
+            className="bg-white rounded-3xl max-w-md w-full my-auto overflow-hidden shadow-2xl border border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="px-5 py-4 bg-[#1e3a8a] text-white flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300">
-                  <Database className="w-5 h-5" />
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-sm sm:text-base">
-                    Pengaturan Database Cloud & Sinkronisasi HP
+                    Status Server & Sinkronisasi Cloud
                   </h4>
                   <p className="text-[11px] text-blue-200">
-                    Koneksi realtime agar laporan & foto kertas HM dari HP karyawan langsung tampil di laptop admin
+                    Koneksi realtime terproteksi PT. LAZ Coal Mandiri
                   </p>
                 </div>
               </div>
@@ -1731,7 +1684,7 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
             </div>
 
             {/* Modal Content */}
-            <div className="p-5 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+            <div className="p-5 space-y-4">
               
               {/* Status Banner */}
               <div className={`p-4 rounded-2xl border text-xs flex items-start space-x-3 ${
@@ -1746,158 +1699,83 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
                 )}
                 <div className="space-y-1">
                   <span className="font-extrabold block text-xs sm:text-sm">
-                    {isCloudConnected ? 'Database Cloud Supabase Terhubung' : 'Aplikasi Berjalan dalam Mode Offline (LocalStorage)'}
+                    {isCloudConnected ? 'Server Database Cloud Aktif (Realtime Online)' : 'Mode Penyimpanan Lokal'}
                   </span>
                   <p className="text-[11px] leading-relaxed text-slate-600">
                     {isCloudConnected
-                      ? 'Laporan baru dan foto kertas HM dari HP karyawan akan tersinkronisasi otomatis ke dashboard ini dalam hitungan detik (Auto-poll 4s).'
-                      : 'Data di HP operator/driver saat ini terisolasi di memori HP masing-masing dan tidak sampai ke laptop admin. Silakan masukkan URL & Anon Key Supabase untuk mengaktifkan sinkronisasi antar perangkat.'}
+                      ? `Laporan shift & bukti kertas HM dari HP karyawan otomatis masuk ke layar admin setiap 4 detik. Update terakhir: ${lastRefreshedAt}.`
+                      : 'Konfigurasi server dikelola secara aman melalui environment server. Hubungi pengelola IT untuk aktivasi server.'}
                   </p>
                 </div>
               </div>
 
-              {/* Form Input URL & Anon Key */}
-              <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
-                <h5 className="font-extrabold text-xs text-slate-900 flex items-center space-x-2">
-                  <Settings className="w-4 h-4 text-blue-600" />
-                  <span>Kredensial Database Supabase</span>
-                </h5>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 block">
-                    Project URL Supabase (VITE_SUPABASE_URL)
-                  </label>
-                  <input
-                    type="text"
-                    value={cfgUrl}
-                    onChange={(e) => setCfgUrl(e.target.value)}
-                    placeholder="https://your-project-id.supabase.co"
-                    className="w-full text-xs font-mono px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  />
+              {/* Indikator Proteksi Kredensial (URL & API Key TIDAK ditampilkan) */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center space-x-2 text-xs font-extrabold text-slate-900">
+                  <Lock className="w-4 h-4 text-[#1e3a8a]" />
+                  <span>Proteksi Kredensial Database</span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 block">
-                    Anon / Public API Key (VITE_SUPABASE_ANON_KEY)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={cfgKey}
-                    onChange={(e) => setCfgKey(e.target.value)}
-                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    className="w-full text-xs font-mono px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
-                  />
-                </div>
-
-                {/* Feedback Hasil Tes */}
-                {testResult && (
-                  <div className={`p-3 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
-                    testResult.success 
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                      : 'bg-red-50 border-red-200 text-red-800'
-                  }`}>
-                    {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
-                    <span>{testResult.message}</span>
+                <div className="space-y-2 text-[11px]">
+                  <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-600">URL Server</span>
+                    <span className="font-mono text-slate-400 tracking-widest select-none">••••••••••••••••</span>
                   </div>
-                )}
-
-                {/* Tombol Aksi */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleTestConnection}
-                    disabled={testingConnection || !cfgUrl || !cfgKey}
-                    className="bg-white hover:bg-slate-100 active:scale-98 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 shadow-2xs flex items-center space-x-2 transition cursor-pointer disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${testingConnection ? 'animate-spin' : ''}`} />
-                    <span>{testingConnection ? 'Menguji...' : 'Tes Koneksi'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSaveConnection}
-                    disabled={!cfgUrl || !cfgKey}
-                    className="bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
-                  >
-                    Simpan & Aktifkan Cloud
-                  </button>
-
-                  {isCloudConnected && (
-                    <button
-                      type="button"
-                      onClick={handleClearConnection}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-semibold px-3 py-2 rounded-xl transition cursor-pointer ml-auto"
-                    >
-                      Putuskan Koneksi (Offline)
-                    </button>
-                  )}
+                  <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-600">API Key Server</span>
+                    <span className="font-mono text-slate-400 tracking-widest select-none">••••••••••••••••</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Tautan & QR Code Sinkronisasi HP */}
-              <div className="space-y-3 bg-gradient-to-br from-blue-50/60 to-indigo-50/60 p-4 sm:p-5 rounded-2xl border border-blue-200/80">
-                <div className="flex items-center space-x-2">
-                  <QrCode className="w-4 h-4 text-[#1e3a8a]" />
-                  <h5 className="font-extrabold text-xs text-[#1e3a8a]">
-                    Tautan & QR Code Sinkronisasi HP Karyawan (1 Kali Buka)
-                  </h5>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Karyawan tidak perlu mengisi URL atau Key manual di HP. Cukup bagikan tautan ini via WhatsApp grup atau minta karyawan scan QR Code ini dari kamera HP sekali saja saat pertama kali membuka website.
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Demi keamanan data perusahaan, URL database dan API Key disembunyikan sepenuhnya dari tampilan browser dan hanya dikelola melalui Environment Server.
                 </p>
-
-                {hpSyncUrl ? (
-                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-3.5 rounded-2xl border border-blue-200 shadow-2xs">
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(hpSyncUrl)}`}
-                      alt="QR Code Sinkronisasi HP"
-                      className="w-32 h-32 rounded-xl border border-slate-200 p-1 shrink-0 bg-white"
-                      loading="lazy"
-                    />
-                    <div className="space-y-2 w-full">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
-                        Tautan Sinkronisasi Otomatis
-                      </label>
-                      <input
-                        type="text"
-                        readOnly
-                        value={hpSyncUrl}
-                        className="w-full text-[11px] font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 select-all outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCopyHpSyncUrl}
-                        className="bg-[#1e3a8a] hover:bg-[#172554] active:scale-98 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs flex items-center space-x-2 transition cursor-pointer"
-                      >
-                        <Copy className="w-3.5 h-3.5 text-amber-300" />
-                        <span>{copiedLink ? 'Tautan Berhasil Disalin!' : 'Salin Tautan untuk WA Grup'}</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 font-medium">
-                    Masukkan URL Supabase dan Anon Key di atas terlebih dahulu untuk membuat QR Code & Tautan sinkronisasi HP.
-                  </p>
-                )}
               </div>
 
-              {/* Panduan Skrip SQL */}
-              <div className="p-3.5 bg-slate-100 rounded-xl text-[11px] text-slate-600 flex items-start space-x-2.5">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-800">Tips Setup Supabase: </span>
-                  Pastikan tabel <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">employees</code>, <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">he_timesheets</code>, dan <code className="font-mono bg-white px-1 py-0.5 rounded text-blue-700">dt_timesheets</code> sudah dibuat. Skrip lengkap tersedia di file <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-800">supabase_schema.sql</code> di proyek ini.
+              {/* Feedback Hasil Tes */}
+              {testResult && (
+                <div className={`p-3 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
+                  testResult.success 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                  {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                  <span>{testResult.message}</span>
                 </div>
+              )}
+
+              {/* Tombol Aksi Aman */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={testingConnection}
+                  className="bg-white hover:bg-slate-100 active:scale-95 text-slate-800 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center space-x-1.5 transition cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${testingConnection ? 'animate-spin' : ''}`} />
+                  <span>{testingConnection ? 'Menguji...' : 'Tes Koneksi'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadData(true);
+                    setConfigModalOpen(false);
+                  }}
+                  className="bg-[#1e3a8a] hover:bg-[#172554] active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  Segarkan Data
+                </button>
               </div>
 
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-end">
+            <div className="px-5 py-3 bg-slate-100 border-t border-slate-200 flex justify-end">
               <button
                 type="button"
                 onClick={() => setConfigModalOpen(false)}
-                className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-5 py-2.5 rounded-xl transition cursor-pointer"
+                className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-5 py-2 rounded-xl transition cursor-pointer"
               >
                 Tutup
               </button>
