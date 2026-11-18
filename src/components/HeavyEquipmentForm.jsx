@@ -14,7 +14,6 @@ import {
   LogOut,
   ArrowRight
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { heTimesheetRepo } from '../lib/supabase';
 import { printHEDailyPDF } from '../lib/exportPdf';
 import { PaperHMPhotoUpload } from './PaperHMPhotoUpload';
@@ -153,12 +152,6 @@ export const HeavyEquipmentForm = ({ currentUser, onLogout }) => {
       };
 
       await heTimesheetRepo.create(payload);
-
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
 
       setSaveSuccess(true);
       setCountdown(4);

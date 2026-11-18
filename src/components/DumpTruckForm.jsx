@@ -12,7 +12,6 @@ import {
   LogOut,
   ArrowRight
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { dtTimesheetRepo } from '../lib/supabase';
 import { printDTDailyPDF } from '../lib/exportPdf';
 import { PaperHMPhotoUpload } from './PaperHMPhotoUpload';
@@ -162,12 +161,6 @@ export const DumpTruckForm = ({ currentUser, onLogout }) => {
       };
 
       await dtTimesheetRepo.create(payload);
-
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
 
       setSaveSuccess(true);
       setCountdown(4);

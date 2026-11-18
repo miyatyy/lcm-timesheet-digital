@@ -32,7 +32,6 @@ import {
   PanelLeftClose,
   ChevronRight
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { 
   heTimesheetRepo, 
   dtTimesheetRepo, 
@@ -256,12 +255,10 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
   // Export Handlers
   const handleExportExcel = () => {
     exportDatabaseHMToExcel(heList, dtList, filterDate);
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
   };
 
   const handleExportWord = async () => {
     await exportDatabaseHMToWord(heList, dtList, filterDate);
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
   };
 
   // Reset Password Handler
@@ -294,8 +291,6 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
 
       // 2. Jalankan pembersihan database (HANYA menghapus he_timesheets dan dt_timesheets)
       const res = await monthlyResetService.executeReset();
-
-      confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
 
       setResetFeedback({
         success: true,

@@ -15,7 +15,6 @@ import {
   RefreshCw,
   MapPin
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { employeeRepo } from '../lib/supabase';
 import { runClientOCR } from '../lib/ocr';
 
@@ -84,16 +83,10 @@ export const AuthView = ({
         return;
       }
 
-      confetti({
-        particleCount: 70,
-        spread: 65,
-        origin: { y: 0.6 }
-      });
-
       setSuccessMsg(`Selamat datang, ${employee.name}! Membuka lembar kerja...`);
       setTimeout(() => {
         onLoginSuccess(employee);
-      }, 600);
+      }, 450);
     } catch (err) {
       setErrorMsg(err.message || 'Gagal memproses login cepat via OCR');
     } finally {
@@ -125,16 +118,10 @@ export const AuthView = ({
         return;
       }
 
-      confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
-
       setSuccessMsg(`Berhasil masuk. Halo, ${employee.name}!`);
       setTimeout(() => {
         onLoginSuccess(employee);
-      }, 450);
+      }, 350);
     } catch (err) {
       setErrorMsg(err.message || 'Terjadi kesalahan saat masuk');
     } finally {
@@ -176,12 +163,6 @@ export const AuthView = ({
         phone: regPhone.trim(),
         password: regPassword,
         role: targetRole
-      });
-
-      confetti({
-        particleCount: 90,
-        spread: 75,
-        origin: { y: 0.6 }
       });
 
       setRegisteredUserConfirmation(newEmployee);
