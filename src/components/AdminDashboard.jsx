@@ -282,16 +282,20 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
     heList.forEach(item => processItem(item, false));
     dtList.forEach(item => processItem(item, true));
 
-    return Object.values(unitMap);
+    return Object.values(unitMap).sort((a, b) => {
+      const dateDiff = String(b.date || '').localeCompare(String(a.date || ''));
+      if (dateDiff !== 0) return dateDiff;
+      return new Date(b.rawItem?.created_at || 0) - new Date(a.rawItem?.created_at || 0);
+    });
   };
 
   const hmUnitRows = computeDatabaseHMRows();
 
-  // All individual timesheet reports for Admin monitoring
+  // All individual timesheet reports for Admin monitoring (terbaru paling atas)
   const allOperationalReports = [
     ...heList.map(h => ({ ...h, isDT: false, roleName: 'Operator Alat Berat', roleBadge: 'HE' })),
     ...dtList.map(d => ({ ...d, isDT: true, roleName: 'Driver Dump Truck', roleBadge: 'DT' }))
-  ].sort((a, b) => new Date(b.tanggal || b.created_at || 0) - new Date(a.tanggal || a.created_at || 0));
+  ].sort((a, b) => new Date(b.created_at || b.tanggal || 0) - new Date(a.created_at || a.tanggal || 0));
 
   const totalReportsWithPhoto = allOperationalReports.filter(r => !!r.foto_kertas_hm).length;
 

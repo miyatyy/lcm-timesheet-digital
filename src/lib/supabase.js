@@ -102,24 +102,30 @@ export const isSupabaseConfigured = () => {
   return !!(supabase && currentConfig.url && currentConfig.anonKey);
 };
 
-// Uji koneksi ke Supabase dan verifikasi kesiapan tabel
+// Uji koneksi ke Supabase dan verifikasi kesiapan seluruh tabel
 export const testSupabaseConnection = async (url, anonKey) => {
   if (!url || !anonKey) {
     return { success: false, message: 'URL Project dan Anon Key tidak boleh kosong.' };
   }
   try {
     const testClient = createClient(url.trim(), anonKey.trim(), { auth: { persistSession: false } });
-    const { error } = await testClient.from('employees').select('count', { count: 'exact', head: true });
-    if (error) {
-      if (error.code === '42P01') {
+    const [empRes, heRes, dtRes] = await Promise.all([
+      testClient.from('employees').select('count', { count: 'exact', head: true }),
+      testClient.from('he_timesheets').select('count', { count: 'exact', head: true }),
+      testClient.from('dt_timesheets').select('count', { count: 'exact', head: true })
+    ]);
+
+    const firstErr = empRes.error || heRes.error || dtRes.error;
+    if (firstErr) {
+      if (firstErr.code === '42P01') {
         return { 
           success: false, 
-          message: 'Koneksi ke server Supabase berhasil, namun tabel belum dibuat. Harap jalankan script supabase_schema.sql di SQL Editor Supabase.' 
+          message: 'Koneksi ke server Supabase berhasil, namun sebagian tabel belum dibuat. Harap jalankan script supabase_schema.sql di SQL Editor Supabase.' 
         };
       }
-      return { success: false, message: 'Supabase Error: ' + error.message };
+      return { success: false, message: 'Supabase Error: ' + firstErr.message };
     }
-    return { success: true, message: 'Koneksi ke Supabase Cloud berhasil & seluruh tabel terdeteksi!' };
+    return { success: true, message: 'Koneksi ke Supabase Cloud berhasil & semua tabel (employees, he_timesheets, dt_timesheets) siap digunakan!' };
   } catch (err) {
     return { success: false, message: err.message || 'Gagal menghubungi server Supabase.' };
   }
@@ -308,19 +314,143 @@ export const employeeRepo = {
 };
 
 // ==============================================================================
+// SMART RESILIENT INSERT & PHOTO EXTRACTOR UNTUK TIMESHEETS (HE & DT)
+// Menjamin data shift + foto kertas HM tetap terkirim realtime ke Supabase
+// bahkan jika database lama belum menjalankan ALTER TABLE foto_kertas_hm
+// ==============================================================================
+const PHOTO_PROOF_MARKER = '__LCM_PHOTO_PROOF__:';
+
+const normalizeTimesheetRecord = (row) => {
+  if (!row || typeof row !== 'object') return row;
+  if (!row.foto_kertas_hm && typeof row.notes === 'string' && row.notes.includes(PHOTO_PROOF_MARKER)) {
+    const markerIdx = row.notes.indexOf(PHOTO_PROOF_MARKER);
+    const cleanNotes = row.notes.slice(0, markerIdx).trim();
+    const extractedPhoto = row.notes.slice(markerIdx + PHOTO_PROOF_MARKER.length).trim();
+    return {
+      ...row,
+      foto_kertas_hm: extractedPhoto,
+      notes: cleanNotes
+    };
+  }
+  return row;
+};
+
+const smartInsertTimesheet = async (tableName, rawItem) => {
+  const payload = {};
+  Object.entries(rawItem).forEach(([key, val]) => {
+    if (val !== undefined) payload[key] = val;
+  });
+
+  // Pastikan kolom NOT NULL tidak pernah kosong
+  if (!payload.nik) payload.nik = '-';
+  if (!payload.nama_opt) payload.nama_opt = '-';
+  if (!payload.model_unit) payload.model_unit = tableName === 'dt_timesheets' ? 'Hino 500' : '-';
+  if (tableName === 'dt_timesheets' && !payload.pergantian) payload.pergantian = 'I';
+
+  let lastError = null;
+  let notesRemoved = false;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert([payload])
+      .select()
+      .single();
+
+    if (!error) {
+      return normalizeTimesheetRecord(data || rawItem);
+    }
+
+    lastError = error;
+    const code = String(error.code || '');
+    const msg = String(error.message || '');
+    const details = String(error.details || '');
+    const combined = `${code} ${msg} ${details}`;
+
+    // 1. Jika insert berhasil namun select().single() ditolak policy (PGRST116)
+    if (code === 'PGRST116') {
+      const { error: plainErr } = await supabase.from(tableName).insert([payload]);
+      if (!plainErr) return normalizeTimesheetRecord(rawItem);
+      lastError = plainErr;
+      break;
+    }
+
+    // 2. Jika kolom belum ada di schema cache / database lama (misal: foto_kertas_hm belum di-ALTER TABLE)
+    if (
+      code === 'PGRST204' ||
+      code === '42703' ||
+      /Could not find the '([^']+)' column/i.test(msg) ||
+      /column "([^"]+)" of relation/i.test(msg)
+    ) {
+      const colMatch =
+        msg.match(/Could not find the '([^']+)' column/i) ||
+        msg.match(/column "([^"]+)" of relation/i) ||
+        msg.match(/column\s+([a-zA-Z0-9_]+)\s+does not exist/i);
+      const missingCol = colMatch ? colMatch[1] : null;
+
+      if (missingCol === 'foto_kertas_hm' || combined.includes('foto_kertas_hm')) {
+        delete payload.foto_kertas_hm;
+        // Simpan foto bukti dengan aman di kolom notes (TEXT) agar tetap tampil di Admin!
+        if (rawItem.foto_kertas_hm && !notesRemoved) {
+          const baseNotes = typeof payload.notes === 'string'
+            ? payload.notes.split(PHOTO_PROOF_MARKER)[0].trim()
+            : '';
+          payload.notes = baseNotes
+            ? `${baseNotes}\n${PHOTO_PROOF_MARKER}${rawItem.foto_kertas_hm}`
+            : `${PHOTO_PROOF_MARKER}${rawItem.foto_kertas_hm}`;
+        }
+        continue;
+      }
+
+      if (missingCol && Object.prototype.hasOwnProperty.call(payload, missingCol)) {
+        if (missingCol === 'notes') notesRemoved = true;
+        delete payload[missingCol];
+        continue;
+      }
+    }
+
+    // 3. Jika Foreign Key employee_id tidak ditemukan di tabel employees (23503)
+    if (code === '23503' || combined.includes('employee_id')) {
+      if (payload.employee_id !== null) {
+        payload.employee_id = null;
+        continue;
+      }
+    }
+
+    // 4. Jika ada pelanggaran NOT NULL (23502)
+    if (code === '23502') {
+      if (combined.includes('model_unit')) { payload.model_unit = '-'; continue; }
+      if (combined.includes('pergantian')) { payload.pergantian = 'I'; continue; }
+      if (combined.includes('nama_opt')) { payload.nama_opt = '-'; continue; }
+      if (combined.includes('nik')) { payload.nik = '-'; continue; }
+    }
+
+    break;
+  }
+
+  throw new Error(
+    `Gagal menyimpan laporan ke server database cloud (${lastError?.code || 'ERR'}): ${lastError?.message || 'Periksa koneksi internet Anda.'}`
+  );
+};
+
+// ==============================================================================
 // REPOSITORY: HE_TIMESHEETS (Alat Berat)
 // ==============================================================================
 export const heTimesheetRepo = {
   async getAll() {
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.from('he_timesheets').select('*').order('tanggal', { ascending: false }).order('created_at', { ascending: false });
-        if (!error && data) return data;
+        const { data, error } = await supabase
+          .from('he_timesheets')
+          .select('*')
+          .order('tanggal', { ascending: false })
+          .order('created_at', { ascending: false });
+        if (!error && data) return data.map(normalizeTimesheetRecord);
       } catch (e) {
         console.warn('Supabase fetch HE failed', e);
       }
     }
-    return getLocalStorage('lcm_he_timesheets', SEED_HE);
+    return getLocalStorage('lcm_he_timesheets', SEED_HE).map(normalizeTimesheetRecord);
   },
 
   async create(record) {
@@ -335,20 +465,10 @@ export const heTimesheetRepo = {
     };
 
     if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('he_timesheets').insert([item]).select().single();
-        if (error) {
-          console.error('Supabase create HE error:', error);
-          throw error;
-        }
-        if (data) {
-          const local = getLocalStorage('lcm_he_timesheets', SEED_HE);
-          setLocalStorage('lcm_he_timesheets', [data, ...local]);
-          return data;
-        }
-      } catch (e) {
-        console.warn('Supabase create HE failed:', e);
-      }
+      const saved = await smartInsertTimesheet('he_timesheets', item);
+      const local = getLocalStorage('lcm_he_timesheets', SEED_HE);
+      setLocalStorage('lcm_he_timesheets', [saved, ...local]);
+      return saved;
     }
 
     const local = getLocalStorage('lcm_he_timesheets', SEED_HE);
@@ -364,13 +484,17 @@ export const dtTimesheetRepo = {
   async getAll() {
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.from('dt_timesheets').select('*').order('tanggal', { ascending: false }).order('created_at', { ascending: false });
-        if (!error && data) return data;
+        const { data, error } = await supabase
+          .from('dt_timesheets')
+          .select('*')
+          .order('tanggal', { ascending: false })
+          .order('created_at', { ascending: false });
+        if (!error && data) return data.map(normalizeTimesheetRecord);
       } catch (e) {
         console.warn('Supabase fetch DT failed', e);
       }
     }
-    return getLocalStorage('lcm_dt_timesheets', SEED_DT);
+    return getLocalStorage('lcm_dt_timesheets', SEED_DT).map(normalizeTimesheetRecord);
   },
 
   async create(record) {
@@ -385,20 +509,10 @@ export const dtTimesheetRepo = {
     };
 
     if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('dt_timesheets').insert([item]).select().single();
-        if (error) {
-          console.error('Supabase create DT error:', error);
-          throw error;
-        }
-        if (data) {
-          const local = getLocalStorage('lcm_dt_timesheets', SEED_DT);
-          setLocalStorage('lcm_dt_timesheets', [data, ...local]);
-          return data;
-        }
-      } catch (e) {
-        console.warn('Supabase create DT failed:', e);
-      }
+      const saved = await smartInsertTimesheet('dt_timesheets', item);
+      const local = getLocalStorage('lcm_dt_timesheets', SEED_DT);
+      setLocalStorage('lcm_dt_timesheets', [saved, ...local]);
+      return saved;
     }
 
     const local = getLocalStorage('lcm_dt_timesheets', SEED_DT);
