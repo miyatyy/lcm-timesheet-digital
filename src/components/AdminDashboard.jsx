@@ -32,7 +32,6 @@ import {
   QrCode,
   RefreshCw,
   Radio,
-  Menu,
   PanelLeftClose,
   ChevronRight
 } from 'lucide-react';
@@ -667,16 +666,6 @@ export const AdminDashboard = ({ currentUser, isSidebarOpen = true, setIsSidebar
         {/* Compact Clean Section Header */}
         <div className="bg-white rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 shadow-xs border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            {!isSidebarOpen && setIsSidebarOpen && (
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(true)}
-                className="hidden lg:flex w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] border border-blue-200 items-center justify-center transition cursor-pointer shrink-0 active:scale-95"
-                title="Buka Menu Samping"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-            )}
             <div className="min-w-0">
               <div className="flex items-center space-x-2">
                 <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
